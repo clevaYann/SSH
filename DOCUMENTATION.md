@@ -281,3 +281,7 @@ Fichiers : `19_reaffectation_globale.html` (page), `19_reaffectation_avant_apres
 - **Effectifs** : `EFFCALCU` est un effectif **calculé à partir des inscriptions** (identifiants d'étudiants des groupes de la séance, groupes réunis cumulés), pas un effectif constaté.
 - **Examens** : distingués des cours ordinaires par le type ou l'intitulé (examen, contrôle continu, rattrapage, oral, soutenance, devoir…). Ils ne sont pas réaffectés.
 - **Export** : il doit être complété jusqu'à la fin de l'année universitaire pour couvrir les examens de mai-juin ; l'option `--examens` indique les périodes.
+
+### 9.4 Infobulles
+
+Dans le dashboard, passer la souris sur le libellé d'un indicateur (titre de colonne, chiffre clé, titre de section, bouton de période) affiche une explication. Les textes sont dans `INDICATOR_TIPS` du script ; pour en ajouter un, ajoutez un couple (motif, explication).
