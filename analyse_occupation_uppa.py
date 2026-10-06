@@ -2945,6 +2945,7 @@ def synthesis_v2_html(
     active_dates: list[dt.date],
     exam_periods: list[tuple[dt.date, dt.date]],
     estimates_on: bool,
+    reallocs: dict[str, dict[str, Any]] | None = None,
 ) -> str:
     """Synthèse V2 : hypothèses H1a/H1b/H1c et comparaisons, conflits persistants, réaffectation, données et limites."""
     st = realloc["stats"]
@@ -2988,17 +2989,28 @@ def synthesis_v2_html(
         f"<b>Réaffectation :</b> périmètre = promotions de la structure « SSH - Pau », cours, CM, TD et CTD dans les locaux banalisés du campus de Pau ({st['pool_n']} locaux, toutes capacités). Les TP, réunions et autres types sont hors périmètre ({fr_number(st['other_n'], 0)} séances). Une série (même salle, jour, horaire et groupes) est réaffectée en bloc, vers un local libre à toutes ses dates ; l'équipement des salles, l'accessibilité et l'appartenance des locaux à d'autres composantes ne sont pas vérifiés.",
         "<b>Lissage (H2, H3b) :</b> test théorique de disponibilité ; les enseignants ne sont pas dans l'export et ne sont pas contrôlés.",
     ]
+    realloc_block = ""
+    if reallocs:
+        rr = [
+            [k, fr_number(v["stats"]["moved_sessions"], 0), fr_number(v["stats"]["moved_hours"], 0), fr_number(v["stats"]["amphi_net_hours"], 0),
+             f"{fr_number(v['stats']['amphi_rate_before'], 1)} → {fr_number(v['stats']['amphi_rate_after'], 1)}",
+             f"{fr_number(v['stats']['fill_before'], 1)} → {fr_number(v['stats']['fill_after'], 1)}", fr_number(v["stats"]["over_n"], 0)]
+            for k, v in reallocs.items()
+        ]
+        realloc_block = ("<section class=\"card\"><h2>Réaffectation selon les effectifs, après chaque hypothèse</h2><p class=\"muted\">Pour tous les cours et TD du collège SSH à Pau, même jour et même heure, sans conflit. Détail dans l'onglet Réaffectation.</p>"
+            + sortable_table(["Situation", "Séances réaffectées", "Heures réaffectées", "Heures d'amphi libérées (net)", "Occupation amphis Pau (%)", "Remplissage (%)", "Effectif > capacité"], rr, 1) + "</section>")
     body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Synthèse V2</h1><p class="muted">Créé le {safe_text(created_at)}</p></div></header>
 <section class="card"><h2>L'essentiel</h2><ul>{"".join(f"<li>{t}</li>" for t in summary)}</ul></section>
 <section class="card"><h2>Hypothèses de report des 3 amphis de Lettres</h2><p class="muted">H1a, H1b et H1c : mêmes jours et horaires, occupations existantes conservées, capacité vérifiée. H2 et H3b (avec lissage) restent pour comparaison. « Besoin non résolu » = sans effectif + effectif estimé + sans solution + non couvertes.</p>
 {sortable_table(["Hypothèse", "Locaux d'accueil", "À reporter", "dont examens", "Reportées (effectif connu)", "Reportées (effectif estimé)", "dont avec chevauchement", "Chevauchements", "Sans effectif", "Sans solution", "Non couvertes (capacité)", "Besoin non résolu"], table_rows)}</section>
+{realloc_block}
 <section class="card"><h2>Conflits persistants</h2><ul>{"".join(persistent)}</ul></section>
 <section class="card"><h2>Données et limites de l'analyse</h2><ul>{"".join(f"<li>{t}</li>" for t in limits)}</ul></section>
 <script>{SORT_SCRIPT}</script></main>"""
     return html_document("Synthèse V2", created_at, body, BASE_CSS)
 
 
-def reallocation_html(created_at: str, realloc: dict[str, Any]) -> str:
+def reallocation_section(realloc: dict[str, Any], key: str, label: str) -> str:
     """Page « Réaffectation globale » : avant/après par série, dépassements de capacité, locaux."""
     st = realloc["stats"]
     kpi = lambda label, value: f'<div class="kpi"><span>{safe_text(label)}</span><strong>{safe_text(value)}</strong></div>'
@@ -3033,19 +3045,36 @@ def reallocation_html(created_at: str, realloc: dict[str, Any]) -> str:
          fr_number(r["rate_after"], 1), fr_number(r["rate_after"] - r["rate_before"], 1), r["fill_before"], r["fill_after"]]
         for r in sorted(realloc["rooms"], key=lambda r: -abs(r["rate_after"] - r["rate_before"]))
     ]
-    body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Réaffectation globale selon les effectifs</h1><p class="muted">Cours, CM, TD et CTD du collège SSH à Pau, dans les locaux banalisés du campus de Pau. Mêmes jours et horaires, aucun conflit créé. Créé le {safe_text(created_at)}</p></div></header>
+    body = f"""<div class="rz" data-h="{safe_text(key)}"><h2>{safe_text(label)}</h2>
 <div class="kpis">{kpis}</div>
 <section class="card"><h2>Comment c'est calculé</h2><p>Pour chaque série de cours (même salle, même jour de la semaine, même horaire, mêmes groupes), on compare l'effectif le plus élevé à la capacité du local. Si un local d'au moins 20 places de moins suffit et est libre à <b>toutes</b> les dates de la série, la série y est transférée. Les séries les plus surdimensionnées sont traitées en premier, et chaque décision met à jour les disponibilités : les propositions sont donc compatibles entre elles. Les examens, TP et séances sans effectif ne sont pas déplacés.</p></section>
 <section class="card"><h2>Tableau avant / après</h2><p class="muted">Une ligne par série réaffectée. « Heures libérées » = heures de cours qui quittent le local actuel.</p>
-<div class="filters"><input id="q" type="search" placeholder="Rechercher un local, une matière, une promotion…"></div>
-{sortable_table(["Local actuel", "Bât.", "Capacité", "Effectif max", "Local proposé", "Capacité proposée", "Créneau", "Matière", "Promotions", "Séances", "Heures libérées"], before_after, 9, "tb")}</section>
+<div class="filters"><input class="rq" data-t="tb_{safe_text(key)}" type="search" placeholder="Rechercher un local, une matière, une promotion…"></div>
+{sortable_table(["Local actuel", "Bât.", "Capacité", "Effectif max", "Local proposé", "Capacité proposée", "Créneau", "Matière", "Promotions", "Séances", "Heures libérées"], before_after, 9, f"tb_{key}")}</section>
 <section class="card"><h2>Séries non réaffectées</h2>{sortable_table(["Raison", "Séries", "Heures"], not_moved_rows, 1)}</section>
 <section class="card"><h2>Séances dont l'effectif dépasse la capacité</h2><p class="muted">Effectif calculé à partir des inscriptions : à vérifier (capacité obsolète ou groupes cumulés). 300 premières lignes ; liste complète dans le CSV 22.</p>
 {sortable_table(["Date", "Local", "Capacité", "Effectif", "Dépassement", "Type", "Matière", "Examen"], over_rows, 2)}</section>
 <section class="card"><h2>Locaux : avant / après</h2><p class="muted">Taux d'occupation 08h-18h (points de %) et remplissage moyen. Triés par variation décroissante.</p>
 {sortable_table(["Local", "Bât.", "Capacité", "Heures avant", "Taux avant (%)", "Heures après", "Taux après (%)", "Variation (pts)", "Remplissage avant (%)", "Remplissage après (%)"], room_rows, 2)}</section>
-<script>{SORT_SCRIPT}document.getElementById('q').addEventListener('input',e=>{{const q=e.target.value.toLowerCase();document.querySelectorAll('#tb tbody tr').forEach(r=>r.hidden=q&&!r.innerText.toLowerCase().includes(q))}});</script></main>"""
-    return html_document("Réaffectation globale", created_at, body, BASE_CSS)
+</div>"""
+    return body
+
+
+def reallocation_html(created_at: str, reallocs: dict[str, dict[str, Any]], labels: dict[str, str]) -> str:
+    """Page « Réaffectation selon les effectifs » : une vue par situation (référence et chaque hypothèse)."""
+    buttons = "".join(
+        f'<button data-h="{safe_text(k)}" aria-pressed="{"true" if i == 0 else "false"}">{safe_text(k)}</button>' for i, k in enumerate(reallocs)
+    )
+    sections = "".join(reallocation_section(r, k, labels[k]) for k, r in reallocs.items())
+    body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Réaffectation selon les effectifs</h1><p class="muted">Pour tous les cours et TD du collège SSH à Pau : on compare le nombre d'étudiants à la taille de la salle et on propose une salle plus adaptée, au même jour et à la même heure, sans créer de conflit. Le calcul est fait pour la situation actuelle puis <b>après chaque hypothèse de report</b> (choisissez ci-dessous). Créé le {safe_text(created_at)}</p></div></header>
+<div class="filters"><label>Situation</label><div class="seg" id="hs">{buttons}</div></div>
+{sections}
+<style>.rz{{display:none}}.rz.on{{display:block}}</style>
+<script>{SORT_SCRIPT}
+const show=k=>{{document.querySelectorAll('.rz').forEach(x=>x.classList.toggle('on',x.dataset.h===k));document.querySelectorAll('#hs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.h===k)))}};
+document.querySelectorAll('#hs button').forEach(b=>b.onclick=()=>show(b.dataset.h));show(document.querySelector('#hs button').dataset.h);
+document.querySelectorAll('.rq').forEach(i=>i.addEventListener('input',e=>{{const q=e.target.value.toLowerCase();document.querySelectorAll('#'+i.dataset.t+' tbody tr').forEach(r=>r.hidden=q&&!r.innerText.toLowerCase().includes(q))}}));</script></main>"""
+    return html_document("Réaffectation selon les effectifs", created_at, body, BASE_CSS)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -3301,17 +3330,23 @@ def main(argv: list[str] | None = None) -> int:
         hyp_rows = hypothesis_rows(scenarios, source_events, recipients_by_key)
         write_csv(run_directory / f"18_hypotheses_report_{stamp}.csv", list(hypotheses_csv_rows(hyp_rows)[0]), hypotheses_csv_rows(hyp_rows))
         pool = reallocation_pool(rooms, building_sites)
-        realloc = simulate_global_reallocation(events, rooms, pool, ssh_pau_names, active_dates)
+        reallocs = {"Référence": simulate_global_reallocation(events, rooms, pool, ssh_pau_names, active_dates)}
+        for key, result in scenarios.items():
+            reallocs[key] = simulate_global_reallocation(result["events"], rooms, pool, ssh_pau_names, active_dates)
+        realloc = reallocs["Référence"]
         series_headers = ["room", "code", "building", "kind", "capacity", "max_effect", "mean_effect", "weekday", "start", "end", "subject", "type", "diplomas", "sessions", "hours", "target", "target_code", "target_capacity", "target_building", "target_kind", "freed_hours", "status"]
-        write_csv(run_directory / f"19_reaffectation_avant_apres_{stamp}.csv", series_headers, realloc["series"])
         session_headers = list(realloc["sessions"][0]) if realloc["sessions"] else ["ID_SEANCE"]
-        write_csv(run_directory / f"20_reaffectation_seances_{stamp}.csv", session_headers, realloc["sessions"])
         room_headers = ["code", "room", "building", "kind", "capacity", "hours_before", "rate_before", "hours_after", "rate_after", "fill_before", "fill_after"]
-        write_csv(run_directory / f"21_reaffectation_locaux_{stamp}.csv", room_headers, realloc["rooms"])
         over_headers = ["DATE", "LOCAL", "BATIMENT", "CAPACITE", "EFFECTIF", "DEPASSEMENT", "TYPE", "LIBELLE_MAT", "NOM_DIP", "EXAMEN"]
-        write_csv(run_directory / f"22_effectif_superieur_capacite_{stamp}.csv", over_headers, realloc["over"])
-        v2_summary = synthesis_v2_html(created_at, hyp_rows, realloc, schedule, active_dates, exam_periods, bool(args.effectifs_estimes))
-        v2_realloc = reallocation_html(created_at, realloc)
+        v2_summary = synthesis_v2_html(created_at, hyp_rows, realloc, schedule, active_dates, exam_periods, bool(args.effectifs_estimes), reallocs)
+        realloc_labels = {"Référence": "Situation actuelle (sans report)", **{k: f"Après {k} : {HYPOTHESIS_LABELS[k]}" for k in scenarios}}
+        v2_realloc = reallocation_html(created_at, reallocs, realloc_labels)
+        for key, item in reallocs.items():
+            suffix = "reference" if key == "Référence" else key
+            write_csv(run_directory / f"19_reaffectation_avant_apres_{suffix}_{stamp}.csv", series_headers, item["series"])
+            write_csv(run_directory / f"20_reaffectation_seances_{suffix}_{stamp}.csv", session_headers, item["sessions"])
+            write_csv(run_directory / f"21_reaffectation_locaux_{suffix}_{stamp}.csv", room_headers, item["rooms"])
+            write_csv(run_directory / f"22_effectif_superieur_capacite_{suffix}_{stamp}.csv", over_headers, item["over"])
         (run_directory / f"18_synthese_v2_{stamp}.html").write_text(v2_summary, encoding="utf-8")
         (run_directory / f"19_reaffectation_globale_{stamp}.html").write_text(v2_realloc, encoding="utf-8")
         dashboard_pages["synthese_v2"] = v2_summary
