@@ -175,7 +175,8 @@ La synthèse (`00_synthese_….html`) et la page des indicateurs (`15_indicateur
 |---|---|
 | **Amphis** | Tableau des amphis seuls, trié et filtré (voir 5.4). |
 | **Cours sans effectif** | Les cours des amphis de Lettres qui ne peuvent pas être déplacés faute de connaître le nombre d'étudiants : explication, chiffres, liste complète triable et téléchargement du CSV à compléter. |
-| **Référence, H1, H2, H3a, H3b** | Tableau de bord complet de chaque cas (vue d'ensemble, grille horaire, analyse hebdomadaire, synthèse, chevauchements) avec filtres ville, site, bâtiment, recherche et taux, et sélecteur de période (voir 5.2). |
+| **Synthèse V2, Réaffectation globale** | Voir section 9. |
+| **Référence, H1a, H1b, H1c, H2, H3b** | Tableau de bord complet de chaque cas (vue d'ensemble, grille horaire, analyse hebdomadaire, synthèse, chevauchements) avec filtres ville, site, bâtiment, recherche et taux, et sélecteur de période (voir 5.2). |
 | **Surdimensionnement** | Séances accueillies dans un local trop grand, et salle plus adaptée proposée. |
 
 ### 5.2 Les périodes d'examen
@@ -248,3 +249,35 @@ Ces points sont aussi écrits dans la page « Indicateurs » du dashboard.
 | Filtres ville/site vides | Le classeur `SURFACES*.xlsx` est introuvable ou `openpyxl` n'est pas installé. |
 | `Aucun fichier SURFACES trouvé` | Idem : indiquez le chemin avec `--surfaces`. |
 | Peu de jours d'examen | La période demandée sort de la fenêtre de l'export (voir limite 4). |
+
+## 9. Version 2 : nouvelle nomenclature et réaffectation globale
+
+### 9.1 Hypothèses de report (nomenclature V2)
+
+| V2 | V1 | Locaux d'accueil | Règle |
+|---|---|---|---|
+| **H1a** | H1 | 5 amphis DEG | Mêmes jours et horaires |
+| **H1b** | H3a (remplacée) | 5 amphis DEG + grandes salles LET/DEG de 50 à 100 places | Mêmes jours et horaires |
+| **H1c** | nouvelle | 5 amphis DEG + autres amphis du campus de Pau | Mêmes jours et horaires |
+| H2, H3b | inchangées | comme H1a et H1b | Avec lissage : comparaison |
+
+Les occupations existantes des locaux d'accueil sont conservées et la capacité est vérifiée par rapport à l'effectif. L'onglet **Synthèse V2** (fichiers `18_synthese_v2.html` et `18_hypotheses_report.csv`) chiffre pour chaque hypothèse : séances et heures à reporter, dont examens, reportées (effectif connu / estimé), avec chevauchement, chevauchements, sans effectif, sans solution, non couvertes, et **besoin non résolu**. Les séances sans effectif ou à effectif estimé restent comptées dans le besoin non résolu.
+
+### 9.2 Réaffectation globale selon les effectifs
+
+Périmètre : cours, CM, TD et CTD des promotions de la structure « SSH - Pau », dans les locaux banalisés du campus de Pau (amphis, salles de cours, salles numérotées), **toutes capacités**. Méthode :
+
+1. Les séances sont regroupées en séries (même salle, jour de semaine, horaire, matière, type, groupes).
+2. Une série est transférée dans le plus petit local dont la capacité couvre l'effectif maximum de la série et qui offre au moins 20 places de moins que le local actuel, à condition qu'il soit libre à toutes les dates.
+3. Les séries les plus surdimensionnées passent en premier ; l'occupation est mise à jour après chaque décision, ce qui garantit que les propositions sont compatibles entre elles et ne créent aucun conflit.
+4. Contrôles automatiques : aucune capacité dépassée, aucun conflit créé, heures conservées.
+
+Sont exclus du déplacement : examens et contrôles (type ou intitulé), TP et autres types, séances sans effectif. Les séances dont l'effectif dépasse la capacité sont listées à part.
+
+Fichiers : `19_reaffectation_globale.html` (page), `19_reaffectation_avant_apres.csv` (une ligne par série : local, capacité, effectif, local proposé, heures libérées, statut), `20_reaffectation_seances.csv` (par séance), `21_reaffectation_locaux.csv` (taux d'occupation et de remplissage avant/après par local), `22_effectif_superieur_capacite.csv`.
+
+### 9.3 Données et limites
+
+- **Effectifs** : `EFFCALCU` est un effectif **calculé à partir des inscriptions** (identifiants d'étudiants des groupes de la séance, groupes réunis cumulés), pas un effectif constaté.
+- **Examens** : distingués des cours ordinaires par le type ou l'intitulé (examen, contrôle continu, rattrapage, oral, soutenance, devoir…). Ils ne sont pas réaffectés.
+- **Export** : il doit être complété jusqu'à la fin de l'année universitaire pour couvrir les examens de mai-juin ; l'option `--examens` indique les périodes.

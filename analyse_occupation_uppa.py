@@ -663,6 +663,7 @@ def load_schedule(
                     "diplomas": set(),
                     "memos": set(),
                     "source_rows": 0,
+                    "is_exam": is_exam_session(course_type, subject),
                     "period": str(row.get("PERIODE", "")).strip(),
                 },
             )
@@ -1489,26 +1490,41 @@ CASE_EXPLANATIONS: dict[str, dict[str, str]] = {
     "reference": {
         "title": "Référence : la situation actuelle",
         "what": "Comment les salles sont utilisées aujourd'hui, sans rien changer.",
-        "how": "C'est le point de départ pour comparer avec H1, H2, H3a et H3b. Un taux au-dessus de 100 % veut dire que deux cours étaient prévus en même temps dans la même salle.",
+        "how": "C'est le point de départ pour comparer avec H1a, H1b, H1c, H2 et H3b. Un taux au-dessus de 100 % veut dire que deux cours étaient prévus en même temps dans la même salle.",
     },
-    "H1": {
-        "title": "H1 : les cours des amphis de Lettres vont dans les amphis de Droit, aux mêmes horaires",
-        "what": "On supprime les 3 amphis de Lettres. Chaque cours va dans un des 5 amphis de Droit, le même jour à la même heure : on prend le plus petit amphi qui est libre et assez grand.",
-        "how": "Si aucun amphi n'est libre à cette heure, le cours est quand même placé et deux cours se retrouvent en même temps dans la même salle. C'est le cas le plus simple, donc le plus risqué.",
+    "synthese_v2": {
+        "title": "Synthèse V2 : les trois hypothèses, la réaffectation, les limites",
+        "what": "Le bilan chiffré de H1a, H1b et H1c (séances et heures reportées, chevauchements, besoins sans solution), puis les conflits qui restent et les limites des données.",
+        "how": "Commencez ici. « Besoin non résolu » additionne les cours sans effectif connu, ceux dont l'effectif est estimé, ceux sans solution et ceux qu'aucune salle n'accueille.",
+    },
+    "reallocation": {
+        "title": "Réaffectation globale : mettre chaque cours dans une salle de la bonne taille",
+        "what": "Pour tous les cours et TD du collège SSH à Pau, on compare le nombre d'étudiants à la taille de la salle et on propose une salle plus adaptée, au même jour et à la même heure, sans créer de conflit.",
+        "how": "Le tableau avant/après donne pour chaque série de cours : salle actuelle, effectif, salle proposée et heures libérées. Les heures libérées dans les amphis sont le gain principal.",
+    },
+    "H1a": {
+        "title": "H1a : les cours des amphis de Lettres vont dans les 5 amphis de Droit, aux mêmes horaires",
+        "what": "On supprime les 3 amphis de Lettres. Chaque cours va dans un des 5 amphis de Droit, le même jour à la même heure : on prend le plus petit amphi qui est libre et assez grand. (C'était H1 dans la première version.)",
+        "how": "Si aucun amphi n'est libre à cette heure, le cours est quand même placé et deux cours se retrouvent en même temps dans la même salle.",
+    },
+    "H1b": {
+        "title": "H1b : amphis de Droit + grandes salles de Lettres et de Droit, aux mêmes horaires",
+        "what": "Comme H1a, mais les cours peuvent aussi aller dans les grandes salles de cours de Lettres et de Droit (de 50 à 100 places). Cette hypothèse remplace H3a de la première version.",
+        "how": "Il y a plus de salles possibles, donc moins de cours en même temps dans la même salle qu'en H1a.",
+    },
+    "H1c": {
+        "title": "H1c : amphis de Droit + autres amphis du campus de Pau, aux mêmes horaires",
+        "what": "Comme H1a, mais les cours peuvent aussi aller dans les autres amphithéâtres du campus de Pau (Sciences, Pal, Dubois, STID…).",
+        "how": "Nouvelle hypothèse. Le même jour et la même heure sont conservés ; seule la salle change. Les amphis d'autres composantes sont supposés disponibles s'ils sont libres.",
     },
     "H2": {
-        "title": "H2 : amphis de Droit, avec des horaires qui peuvent changer",
-        "what": "Comme H1, mais un cours peut être décalé à une autre heure ou un autre jour (le plus proche possible de l'horaire d'origine).",
+        "title": "H2 (comparaison) : amphis de Droit, avec des horaires qui peuvent changer",
+        "what": "Comme H1a, mais un cours peut être décalé à une autre heure ou un autre jour (le plus proche possible de l'horaire d'origine).",
         "how": "Un cours n'est décalé que si la salle est libre et assez grande, entre 8 h et 18 h, et si sa promotion n'a pas déjà un autre cours à ce moment. C'est un test, pas un emploi du temps officiel.",
     },
-    "H3a": {
-        "title": "H3a : amphis de Droit + grandes salles, aux mêmes horaires",
-        "what": "Comme H1, mais les cours peuvent aussi aller dans les grandes salles de cours de Lettres et de Droit (de 50 à 100 places).",
-        "how": "Il y a plus de salles possibles, donc moins de cours en même temps dans la même salle qu'en H1.",
-    },
     "H3b": {
-        "title": "H3b : amphis de Droit + grandes salles, avec des horaires qui peuvent changer",
-        "what": "Comme H2, mais avec les grandes salles de cours en plus des amphis.",
+        "title": "H3b (comparaison) : amphis de Droit + grandes salles, avec des horaires qui peuvent changer",
+        "what": "Comme H2, mais avec les grandes salles de cours en plus des amphis (c'est le lissage de H1b).",
         "how": "C'est le cas le plus favorable. Cela reste un test théorique.",
     },
     "surdimensionnement": {
@@ -1520,7 +1536,7 @@ CASE_EXPLANATIONS: dict[str, dict[str, str]] = {
 
 STATUS_EXPLANATIONS: dict[str, str] = {
     "place": "Le cours a trouvé une salle libre et assez grande.",
-    "place_avec_chevauchement": "H1 et H3a : aucune salle n'est libre à cette heure. Le cours est placé quand même, donc deux cours ont lieu en même temps.",
+    "place_avec_chevauchement": "H1a, H1b et H1c : aucune salle n'est libre à cette heure. Le cours est placé quand même, donc deux cours ont lieu en même temps.",
     "sans_solution": "H2 et H3b : aucune heure libre trouvée. Le cours n'est pas placé.",
     "non_couvert": "Aucune salle n'est assez grande pour le nombre d'étudiants. Le cours n'est pas placé.",
     "effectif_inconnu": "On ne connaît pas le nombre d'étudiants, donc on ne peut pas choisir une salle sans l'inventer. Le cours n'est pas placé.",
@@ -1805,10 +1821,10 @@ def combined_template_dashboard(
     buttons = "".join(
         f'<button type="button" class="view-tab{" active" if index == 0 else ""}" data-view="{safe_text(key)}">{safe_text(label)}</button>'
         for index, (key, label) in enumerate(
-            (("amphis", "Amphis"), ("sans_effectif", "Cours sans effectif"), ("reference", "Référence"), ("H1", "H1"), ("H2", "H2"), ("H3a", "H3a"), ("H3b", "H3b"), ("surdimensionnement", "Surdimensionnement"))
+            (("synthese_v2", "Synthèse V2"), ("amphis", "Amphis"), ("reallocation", "Réaffectation globale"), ("sans_effectif", "Cours sans effectif"), ("reference", "Référence"), ("H1a", "H1a"), ("H1b", "H1b"), ("H1c", "H1c"), ("H2", "H2 (lissage)"), ("H3b", "H3b (lissage)"), ("surdimensionnement", "Surdimensionnement"))
         )
     )
-    body = f"""<main><header><div><p>UPPA · Direction du Patrimoine · SSH</p><h1>Occupation des salles · dossier complet</h1><span>Référence 2025–2026 et simulations H1, H2, H3a, H3b</span></div><div class="stamp">Créé le {safe_text(created_at)}</div></header>
+    body = f"""<main><header><div><p>UPPA · Direction du Patrimoine · SSH</p><h1>Occupation des salles · dossier complet</h1><span>Référence 2025–2026, hypothèses H1a, H1b, H1c, comparaisons H2 et H3b, réaffectation globale</span></div><div class="stamp">Créé le {safe_text(created_at)}</div></header>
 <nav aria-label="Vues du dossier">{buttons}</nav><div class="downloads"><a href="{safe_text(oversize_csv_name)}" download>↓ CSV surdimensionnement</a><a href="{safe_text(detail_csv_name)}" download>↓ CSV détail des séances</a>{f'<a href="{safe_text(unknown_csv_name)}" download>↓ CSV cours sans effectif</a>' if unknown_csv_name else ''}</div>
 <section id="case-info" class="case-info" aria-live="polite"></section>
 <iframe id="view" title="Tableau de bord d'occupation" sandbox="allow-scripts" srcdoc=""></iframe>
@@ -2567,7 +2583,7 @@ def indicators_html(
         )
 
     resolution = []
-    for raw, smooth in (("H1", "H2"), ("H3a", "H3b")):
+    for raw, smooth in (("H1a", "H2"), ("H1b", "H3b")):
         before, after = summaries[raw]["conflicts"], summaries[smooth]["conflicts"]
         resolution.append(
             (f"{raw} → {smooth}", before, after, max(0, before - after),
@@ -2592,12 +2608,13 @@ def indicators_html(
     ]
     kpis = "".join(
         (
-            kpi("Chevauchements bruts (H1)", str(summaries["H1"]["conflicts"])),
+            kpi("Chevauchements bruts (H1a)", str(summaries["H1a"]["conflicts"])),
             kpi("Restants après lissage (H2)", str(summaries["H2"]["conflicts"])),
-            kpi("Bruts grandes salles (H3a)", str(summaries["H3a"]["conflicts"])),
+            kpi("Bruts grandes salles (H1b)", str(summaries["H1b"]["conflicts"])),
+            kpi("Bruts amphis campus Pau (H1c)", str(summaries["H1c"]["conflicts"])),
             kpi("Restants après lissage (H3b)", str(summaries["H3b"]["conflicts"])),
             kpi("Occupation amphis DEG avant", f"{mean_rate('Référence'):.1f} %"),
-            kpi("Amphis DEG après H1", f"{mean_rate('H1'):.1f} %"),
+            kpi("Amphis DEG après H1a", f"{mean_rate('H1a'):.1f} %"),
             kpi("Amphis DEG après H2", f"{mean_rate('H2'):.1f} %"),
             kpi("Amphis DEG après H3b", f"{mean_rate('H3b'):.1f} %"),
         )
@@ -2609,9 +2626,426 @@ def indicators_html(
 <section class="card"><h2>Focus périodes d'examen</h2><p class="muted">{safe_text(exam_text)} · {len(indicators["examDates"])} jours pédagogiques concernés.</p><div class="grid2"><div><h3>Top 5 examens</h3>{bars(indicators["topExam"])}</div><div><h3>Flop 5 examens</h3>{bars(indicators["flopExam"])}</div></div><h3>Plus forts écarts effectif / capacité en examens</h3>{gap_table(indicators["gapsExam"])}<h3>Remplissage moyen par salle (examens)</h3>{fill_table(indicators["fillExam"])}</section>
 <section class="card"><h2>Écart effectif / capacité (année)</h2><h3>15 plus forts écarts</h3>{gap_table(indicators["gaps"])}<h3>Remplissage moyen par salle</h3>{fill_table(indicators["fill"])}</section>
 <section class="card"><h2>Séances mal dimensionnées déplaçables</h2><p>{indicators["oversized"]} occurrences surdimensionnées ; {indicators["movable"]} ont un local plus adapté libre sur toute leur série ; {indicators["freedAmphi"]} occurrences en amphithéâtre seraient libérées ({indicators["freedAmphiHours"]:.1f} h).</p></section>
-<section class="card"><h2>Explication de chaque cas</h2>{"".join(f"<h3>{safe_text(CASE_EXPLANATIONS[k]['title'])}</h3><p>{safe_text(CASE_EXPLANATIONS[k]['what'])} {safe_text(CASE_EXPLANATIONS[k]['how'])}</p>" for k in ("reference", "H1", "H2", "H3a", "H3b"))}<h3>Statuts des séances</h3><ul>{"".join(f"<li><code>{safe_text(k)}</code> : {safe_text(v)}</li>" for k, v in STATUS_EXPLANATIONS.items())}</ul></section>
+<section class="card"><h2>Explication de chaque cas</h2>{"".join(f"<h3>{safe_text(CASE_EXPLANATIONS[k]['title'])}</h3><p>{safe_text(CASE_EXPLANATIONS[k]['what'])} {safe_text(CASE_EXPLANATIONS[k]['how'])}</p>" for k in ("reference", "H1a", "H1b", "H1c", "H2", "H3b"))}<h3>Statuts des séances</h3><ul>{"".join(f"<li><code>{safe_text(k)}</code> : {safe_text(v)}</li>" for k, v in STATUS_EXPLANATIONS.items())}</ul></section>
 <section class="card"><h2>Hypothèses et limites</h2><ul>{"".join(f"<li>{safe_text(n)}</li>" for n in notes)}</ul></section></main>"""
     return html_document("Indicateurs occupation UPPA", created_at, body, BASE_CSS)
+
+
+# ---------------------------------------------------------------------------
+# V2 : nouvelle nomenclature des hypothèses, bilan chiffré et réaffectation globale
+# ---------------------------------------------------------------------------
+
+EXAM_TYPE_PATTERN = re.compile(r"exam|contr[oô]le|\bcc\b|rattrapage|soutenance|\boral\b|partiel|tp not|devoir", re.I)
+EXAM_SUBJECT_PATTERN = re.compile(r"exam|partiel|devoir|rattrapage|soutenance|\boral\b|\bcc\b|contr[oô]le continu|\bcc[_ ]", re.I)
+REALLOC_TYPES = {"cours", "cm", "td", "ctd"}
+REALLOC_MIN_GAIN = 20  # une réaffectation doit gagner au moins 20 places de capacité
+WEEKDAYS_FR = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
+
+HYPOTHESIS_LABELS = {
+    "H1a": "5 amphis DEG, mêmes jours et horaires",
+    "H1b": "5 amphis DEG + grandes salles LET/DEG (50-100 places), mêmes jours et horaires",
+    "H1c": "5 amphis DEG + autres amphis du campus de Pau, mêmes jours et horaires",
+    "H2": "Comparaison : 5 amphis DEG avec lissage",
+    "H3b": "Comparaison : 5 amphis DEG + grandes salles avec lissage",
+}
+
+
+def is_exam_session(course_type: str, subject: str) -> bool:
+    """Examen ou contrôle (type ou intitulé) : contraintes d'accueil spécifiques, distingué des cours ordinaires."""
+    return bool(EXAM_TYPE_PATTERN.search(course_type or "") or EXAM_SUBJECT_PATTERN.search(subject or ""))
+
+
+def event_is_ssh_pau(event: dict[str, Any], names: set[str]) -> bool:
+    """Séance d'une promotion de la structure « SSH - Pau » (nom exact ou groupe « <Promotion>... »)."""
+    for diploma in event["diplomas"]:
+        if diploma in names:
+            return True
+        parent = re.match(r"<([^>]*)>", diploma)
+        if parent and parent.group(1) in names:
+            return True
+    return False
+
+
+def reallocation_pool(rooms: dict[str, Room], building_sites: dict[str, dict[str, str]]) -> dict[str, Room]:
+    """Locaux banalisés du campus de Pau (amphis, salles de cours, salles numérotées), toutes capacités."""
+    pool: dict[str, Room] = {}
+    for room in rooms.values():
+        if building_sites.get(room.building, {}).get("site") != "CAMPUS DE PAU" or not room.capacity:
+            continue
+        if room.kind in {"amphi", "salle_cours", "grande_salle"} or re.match(r"salle\s*\d+\s*(bis)?\s*\(", room.name, re.I):
+            pool[room.code] = room
+    return pool
+
+
+def hypothesis_rows(
+    scenarios: dict[str, dict[str, Any]], source_events: list[dict[str, Any]], recipients_by_key: dict[str, list[Room]]
+) -> list[dict[str, Any]]:
+    """Bilan chiffré (séances et heures) de chaque hypothèse de report."""
+    by_id = {event["id"]: event for event in source_events}
+    rows = []
+    for key, result in scenarios.items():
+        acc: dict[str, list[float]] = defaultdict(lambda: [0, 0.0])
+
+        def add(name: str, event: dict[str, Any]) -> None:
+            acc[name][0] += 1
+            acc[name][1] += event["duration"] / 60
+
+        for source_id, status in result["statuses"].items():
+            event = by_id[source_id]
+            kind = status["status"]
+            add("total", event)
+            add("exam" if event.get("is_exam") else "ordinary", event)
+            if kind in {"place", "place_avec_chevauchement"}:
+                add("estimated" if status.get("estimated") else "placed", event)
+                if kind == "place_avec_chevauchement":
+                    add("overlap", event)
+            elif kind == "effectif_inconnu":
+                add("no_effect", event)
+            elif kind == "sans_solution":
+                add("no_solution", event)
+            elif kind == "non_couvert":
+                add("uncovered", event)
+        unresolved = [
+            acc["no_effect"][0] + acc["estimated"][0] + acc["no_solution"][0] + acc["uncovered"][0],
+            acc["no_effect"][1] + acc["estimated"][1] + acc["no_solution"][1] + acc["uncovered"][1],
+        ]
+        row: dict[str, Any] = {
+            "key": key, "label": HYPOTHESIS_LABELS.get(key, key), "rooms": len(recipients_by_key[key]),
+            "conflicts": len(result["conflicts"]),
+        }
+        for name in ("total", "ordinary", "exam", "placed", "estimated", "overlap", "no_effect", "no_solution", "uncovered"):
+            row[f"{name}_n"], row[f"{name}_h"] = acc[name][0], round(acc[name][1], 2)
+        row["unresolved_n"], row["unresolved_h"] = unresolved[0], round(unresolved[1], 2)
+        row["top_conflict_rooms"] = Counter(item["room"] for item in result["conflicts"]).most_common(5)
+        rows.append(row)
+    return rows
+
+
+def simulate_global_reallocation(
+    events: list[dict[str, Any]],
+    rooms: dict[str, Room],
+    pool: dict[str, Room],
+    ssh_names: set[str],
+    active_dates: list[dt.date],
+) -> dict[str, Any]:
+    """Réaffectation globale : chaque série de cours/TD SSH Pau mal dimensionnée va vers le plus petit local libre à toutes ses
+    dates (mêmes jours et horaires). Les séries sont traitées par gaspillage décroissant et l'occupation est mise à jour après
+    chaque décision : l'ensemble des propositions est donc compatible."""
+    scope = [e for e in events if e["room_code"] in pool and event_is_ssh_pau(e, ssh_names)]
+    candidates = [e for e in scope if not e.get("is_exam") and e["type"].strip().casefold() in REALLOC_TYPES]
+    candidate_ids = {e["id"] for e in candidates}
+    exam_events = [e for e in scope if e.get("is_exam")]
+    other_events = [e for e in scope if e["id"] not in candidate_ids and not e.get("is_exam")]
+
+    occupied: dict[tuple[str, dt.date], list[list[Any]]] = defaultdict(list)
+    for event in events:
+        occupied[(event["room_code"], event["date"])].append([event["start"], event["end"], event["id"]])
+
+    def free(code: str, date: dt.date, start: int, end: int) -> bool:
+        return all(not (start < other_end and other_start < end) for other_start, other_end, _ in occupied.get((code, date), []))
+
+    series: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
+    for event in candidates:
+        series[(event["room_code"], event["subject"], event["type"], tuple(event["diplomas"]), event["date"].weekday(), event["start"], event["end"])].append(event)
+
+    pool_list = sorted(pool.values(), key=lambda r: (r.capacity or 0, r.code))
+    series_rows: list[dict[str, Any]] = []
+    moved: dict[str, Room] = {}
+    prepared = []
+    for key, items in series.items():
+        efforts = [e["effect"] for e in items]
+        current = rooms[key[0]]
+        known = all(value is not None for value in efforts)
+        prepared.append((key, items, current, known, max(efforts) if known else None))
+    prepared.sort(key=lambda p: (-((p[2].capacity or 0) - (p[4] or 0)) if p[3] else 0, p[0][0], p[0][1]))
+
+    for key, items, current, known, max_effect in prepared:
+        hours = sum(e["duration"] for e in items) / 60
+        row = {
+            "room": current.name, "code": current.code, "building": current.building, "kind": current.kind, "capacity": current.capacity,
+            "max_effect": max_effect, "mean_effect": round(sum(e["effect"] for e in items) / len(items), 1) if known else None,
+            "weekday": WEEKDAYS_FR[key[4]], "start": key[5], "end": key[6], "subject": key[1], "type": key[2],
+            "diplomas": " | ".join(key[3]), "sessions": len(items), "hours": round(hours, 2),
+            "target": "", "target_code": "", "target_capacity": None, "target_building": "", "target_kind": "", "freed_hours": 0.0, "status": "",
+        }
+        if not known:
+            row["status"] = "effectif inconnu : non réaffectable"
+        elif max_effect > (current.capacity or 0):
+            row["status"] = "effectif supérieur à la capacité : à traiter à part"
+        else:
+            targets = [
+                r for r in pool_list
+                if r.code != current.code and max_effect <= (r.capacity or 0) <= (current.capacity or 0) - REALLOC_MIN_GAIN
+            ]
+            targets.sort(key=lambda r: (r.capacity or 0, r.building != current.building, r.code))
+            if not targets:
+                row["status"] = "déjà adapté : aucun local plus petit utile"
+            else:
+                chosen = next((r for r in targets if all(free(r.code, e["date"], e["start"], e["end"]) for e in items)), None)
+                if chosen is None:
+                    row["status"] = "non réaffecté : aucun local plus adapté libre à toutes les dates"
+                else:
+                    for event in items:
+                        for slot in occupied[(current.code, event["date"])]:
+                            if slot[2] == event["id"]:
+                                occupied[(current.code, event["date"])].remove(slot)
+                                break
+                        occupied[(chosen.code, event["date"])].append([event["start"], event["end"], event["id"]])
+                        moved[event["id"]] = chosen
+                    row.update(
+                        status="réaffecté", target=chosen.name, target_code=chosen.code, target_capacity=chosen.capacity,
+                        target_building=chosen.building, target_kind=chosen.kind, freed_hours=round(hours, 2),
+                    )
+        series_rows.append(row)
+
+    final_events = []
+    session_rows = []
+    for event in events:
+        target = moved.get(event["id"])
+        if target is None:
+            final_events.append(event)
+            continue
+        final_events.append(
+            dict(event, room_code=target.code, room_name=target.name, building=target.building, capacity=target.capacity,
+                 room_kind=target.kind, realloc_from=event["room_code"])
+        )
+    for event in candidates:
+        target = moved.get(event["id"])
+        session_rows.append(
+            {
+                "ID_SEANCE": event["id"], "DATE": event["date"].isoformat(), "JOUR": WEEKDAYS_FR[event["date"].weekday()],
+                "HDEBUT": f"{event['start'] // 60:02d}:{event['start'] % 60:02d}", "HFIN": f"{event['end'] // 60:02d}:{event['end'] % 60:02d}",
+                "TYPE": event["type"], "LIBELLE_MAT": event["subject"], "NOM_DIP": " | ".join(event["diplomas"]),
+                "LOCAL_INITIAL": event["room_name"], "CAPACITE_INITIALE": event["capacity"],
+                "EFFECTIF": event["effect"] if event["effect"] is not None else "",
+                "LOCAL_PROPOSE": target.name if target else event["room_name"],
+                "CAPACITE_PROPOSEE": target.capacity if target else event["capacity"],
+                "STATUT": "réaffectée" if target else "inchangée",
+                "HEURES": round(event["duration"] / 60, 2),
+            }
+        )
+
+    # Contrôles : aucun conflit créé, capacité respectée, heures conservées
+    by_room = room_events(final_events)
+    for event in final_events:
+        if event["id"] not in moved:
+            continue
+        if event["effect"] is None or event["effect"] > (event["capacity"] or 0):
+            raise AnalysisError(f"Réaffectation : capacité dépassée pour la séance {event['id']}.")
+        for other in by_room[(event["room_code"], event["date"])]:
+            if other["id"] != event["id"] and overlap(event, other):
+                raise AnalysisError(f"Réaffectation : conflit créé dans {event['room_name']} le {event['date']}.")
+    if abs(sum(e["duration"] for e in events) - sum(e["duration"] for e in final_events)) > 0:
+        raise AnalysisError("Réaffectation : les heures ne sont pas conservées.")
+
+    # Indicateurs avant / après
+    pool_rooms = list(pool.values())
+    amphis = [r for r in pool_rooms if r.kind == "amphi"]
+    before_occ = occupancy_by_room(events, pool_rooms, active_dates)
+    after_occ = occupancy_by_room(final_events, pool_rooms, active_dates)
+
+    def weighted_fill(stream: list[dict[str, Any]], ids: set[str]) -> float:
+        num = sum((e["effect"] or 0) * e["duration"] for e in stream if e["id"] in ids and e["effect"] is not None and e["capacity"])
+        den = sum(e["capacity"] * e["duration"] for e in stream if e["id"] in ids and e["effect"] is not None and e["capacity"])
+        return 100 * num / den if den else 0.0
+
+    known_ids = {e["id"] for e in candidates if e["effect"] is not None}
+    fill_before = fill_by_room(events, pool_rooms, None)
+    fill_after = fill_by_room(final_events, pool_rooms, None)
+    room_rows = []
+    for room in sorted(pool_rooms, key=lambda r: (r.building, r.name.casefold())):
+        room_rows.append(
+            {
+                "code": room.code, "room": room.name, "building": room.building, "kind": room.kind, "capacity": room.capacity,
+                "hours_before": round(before_occ[room.code]["hours"], 1), "rate_before": round(before_occ[room.code]["rate"], 2),
+                "hours_after": round(after_occ[room.code]["hours"], 1), "rate_after": round(after_occ[room.code]["rate"], 2),
+                "fill_before": round(fill_before.get(room.code, {}).get("fill", 0.0), 1) if room.code in fill_before else "",
+                "fill_after": round(fill_after.get(room.code, {}).get("fill", 0.0), 1) if room.code in fill_after else "",
+            }
+        )
+    out_hours = sum(r["freed_hours"] for r in series_rows if r["status"] == "réaffecté" and r["kind"] == "amphi")
+    in_hours = sum(
+        r["freed_hours"] for r in series_rows if r["status"] == "réaffecté" and r["target_kind"] == "amphi"
+    )
+    over_rows = [
+        {
+            "DATE": e["date"].isoformat(), "LOCAL": e["room_name"], "BATIMENT": e["building"], "CAPACITE": e["capacity"],
+            "EFFECTIF": e["effect"], "DEPASSEMENT": e["effect"] - e["capacity"], "TYPE": e["type"], "LIBELLE_MAT": e["subject"],
+            "NOM_DIP": " | ".join(e["diplomas"]), "EXAMEN": "oui" if e.get("is_exam") else "non",
+        }
+        for e in sorted(scope, key=lambda e: (-(e["effect"] or 0) + (e["capacity"] or 0), e["date"]))
+        if e["effect"] is not None and e["capacity"] and e["effect"] > e["capacity"]
+    ]
+    unknown = [e for e in candidates if e["effect"] is None]
+    moved_series = [r for r in series_rows if r["status"] == "réaffecté"]
+    stats = {
+        "scope_n": len(scope), "scope_h": sum(e["duration"] for e in scope) / 60,
+        "candidate_n": len(candidates), "candidate_h": sum(e["duration"] for e in candidates) / 60,
+        "exam_n": len(exam_events), "exam_h": sum(e["duration"] for e in exam_events) / 60,
+        "other_n": len(other_events), "other_h": sum(e["duration"] for e in other_events) / 60,
+        "unknown_n": len(unknown), "unknown_h": sum(e["duration"] for e in unknown) / 60,
+        "series_n": len(series_rows), "moved_series": len(moved_series),
+        "moved_sessions": sum(r["sessions"] for r in moved_series), "moved_hours": sum(r["hours"] for r in moved_series),
+        "amphi_out_hours": out_hours, "amphi_in_hours": in_hours, "amphi_net_hours": out_hours - in_hours,
+        "amphi_rate_before": sum(before_occ[r.code]["rate"] for r in amphis) / len(amphis) if amphis else 0.0,
+        "amphi_rate_after": sum(after_occ[r.code]["rate"] for r in amphis) / len(amphis) if amphis else 0.0,
+        "amphi_count": len(amphis),
+        "fill_before": weighted_fill(events, known_ids), "fill_after": weighted_fill(final_events, known_ids),
+        "over_n": len(over_rows), "pool_n": len(pool),
+        "no_room_series": sum(1 for r in series_rows if r["status"].startswith("non réaffecté")),
+        "no_room_hours": sum(r["hours"] for r in series_rows if r["status"].startswith("non réaffecté")),
+        "adapted_series": sum(1 for r in series_rows if r["status"].startswith("déjà adapté")),
+        "over_series": sum(1 for r in series_rows if r["status"].startswith("effectif supérieur")),
+    }
+    return {
+        "series": series_rows, "sessions": session_rows, "rooms": room_rows, "over": over_rows, "events": final_events,
+        "stats": stats, "moved": moved,
+    }
+
+
+SORT_SCRIPT = """document.querySelectorAll('table.sortable').forEach(t=>t.querySelectorAll('th').forEach((th,i)=>th.onclick=()=>{const b=t.tBodies[0],r=[...b.rows],d=th.dataset.d==='a'?-1:1;th.dataset.d=d===1?'a':'d';const v=c=>{const x=c.innerText.replace(/\\s/g,'').replace(',','.'),n=parseFloat(x);return isNaN(n)?c.innerText:n};r.sort((x,y)=>{const a=v(x.cells[i]),c=v(y.cells[i]);return(typeof a==='number'&&typeof c==='number'?a-c:String(a).localeCompare(String(c),'fr'))*d});r.forEach(x=>b.appendChild(x))}));"""
+
+
+def sortable_table(headers: list[str], rows: list[list[Any]], num_from: int = 99, table_id: str = "") -> str:
+    head = "".join(f'<th{" class=num" if i >= num_from else ""}>{safe_text(h)} ↕</th>' for i, h in enumerate(headers))
+    body = "".join(
+        "<tr>" + "".join(f'<td{" class=num" if i >= num_from else ""}>{safe_text(c)}</td>' for i, c in enumerate(row)) + "</tr>" for row in rows
+    )
+    ident = f' id="{table_id}"' if table_id else ""
+    return f'<div class="tablewrap"><table class="sortable"{ident}><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+
+
+def hypotheses_csv_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    out = []
+    for row in rows:
+        out.append(
+            {
+                "HYPOTHESE": row["key"], "DESCRIPTION": row["label"], "LOCAUX_ACCUEIL": row["rooms"],
+                "SEANCES_A_REPORTER": row["total_n"], "HEURES_A_REPORTER": row["total_h"],
+                "DONT_COURS_ORDINAIRES_SEANCES": row["ordinary_n"], "DONT_COURS_ORDINAIRES_HEURES": row["ordinary_h"],
+                "DONT_EXAMENS_SEANCES": row["exam_n"], "DONT_EXAMENS_HEURES": row["exam_h"],
+                "REPORTEES_EFFECTIF_CONNU_SEANCES": row["placed_n"], "REPORTEES_EFFECTIF_CONNU_HEURES": row["placed_h"],
+                "REPORTEES_EFFECTIF_ESTIME_SEANCES": row["estimated_n"], "REPORTEES_EFFECTIF_ESTIME_HEURES": row["estimated_h"],
+                "DONT_AVEC_CHEVAUCHEMENT_SEANCES": row["overlap_n"], "DONT_AVEC_CHEVAUCHEMENT_HEURES": row["overlap_h"],
+                "CHEVAUCHEMENTS": row["conflicts"],
+                "SANS_EFFECTIF_SEANCES": row["no_effect_n"], "SANS_EFFECTIF_HEURES": row["no_effect_h"],
+                "SANS_SOLUTION_SEANCES": row["no_solution_n"], "SANS_SOLUTION_HEURES": row["no_solution_h"],
+                "NON_COUVERTES_SEANCES": row["uncovered_n"], "NON_COUVERTES_HEURES": row["uncovered_h"],
+                "BESOIN_NON_RESOLU_SEANCES": row["unresolved_n"], "BESOIN_NON_RESOLU_HEURES": row["unresolved_h"],
+            }
+        )
+    return out
+
+
+def synthesis_v2_html(
+    created_at: str,
+    hyp: list[dict[str, Any]],
+    realloc: dict[str, Any],
+    schedule: dict[str, Any],
+    active_dates: list[dt.date],
+    exam_periods: list[tuple[dt.date, dt.date]],
+    estimates_on: bool,
+) -> str:
+    """Synthèse V2 : hypothèses H1a/H1b/H1c et comparaisons, conflits persistants, réaffectation, données et limites."""
+    st = realloc["stats"]
+    by_key = {row["key"]: row for row in hyp}
+    nb = lambda n, h: f"{fr_number(n, 0)} séances · {fr_number(h, 0)} h"
+    table_rows = [
+        [
+            f"{row['key']} : {row['label']}", row["rooms"], nb(row["total_n"], row["total_h"]), nb(row["exam_n"], row["exam_h"]),
+            nb(row["placed_n"], row["placed_h"]), nb(row["estimated_n"], row["estimated_h"]), nb(row["overlap_n"], row["overlap_h"]),
+            fr_number(row["conflicts"], 0), nb(row["no_effect_n"], row["no_effect_h"]), nb(row["no_solution_n"], row["no_solution_h"]),
+            nb(row["uncovered_n"], row["uncovered_h"]), nb(row["unresolved_n"], row["unresolved_h"]),
+        ]
+        for row in hyp
+    ]
+    persistent = []
+    for row in hyp:
+        if row["conflicts"]:
+            tops = ", ".join(f"{room} ({count})" for room, count in row["top_conflict_rooms"])
+            persistent.append(f"<li><b>{safe_text(row['key'])}</b> : {fr_number(row['conflicts'], 0)} moments où deux cours ont lieu en même temps dans la même salle. Locaux les plus touchés : {safe_text(tops)}.</li>")
+        else:
+            persistent.append(f"<li><b>{safe_text(row['key'])}</b> : aucun chevauchement dans les locaux d'accueil.</li>")
+    first = by_key["H1a"], by_key["H1b"], by_key["H1c"]
+    summary = [
+        f"Les trois amphis de Lettres représentent {fr_number(first[0]['total_n'], 0)} séances ({fr_number(first[0]['total_h'], 0)} h) à reporter, dont {fr_number(first[0]['exam_n'], 0)} examens ou contrôles ({fr_number(first[0]['exam_h'], 0)} h).",
+        *[
+            f"<b>{r['key']}</b> : {fr_number(r['placed_n'] + r['estimated_n'], 0)} séances reportées, dont {fr_number(r['overlap_n'], 0)} avec chevauchement ({fr_number(r['conflicts'], 0)} moments en double). Besoin non résolu : {fr_number(r['unresolved_n'], 0)} séances, {fr_number(r['unresolved_h'], 0)} h."
+            for r in first
+        ],
+        f"Réaffectation globale (collège SSH à Pau) : {fr_number(st['moved_sessions'], 0)} séances de cours/TD ({fr_number(st['moved_hours'], 0)} h) peuvent aller dans un local plus adapté sans aucun conflit ; "
+        f"{fr_number(st['amphi_out_hours'], 0)} h quittent des amphis, soit {fr_number(st['amphi_net_hours'], 0)} h d'amphi libérées au net. Taux d'occupation moyen des amphis de Pau : {fr_number(st['amphi_rate_before'], 1)} % → {fr_number(st['amphi_rate_after'], 1)} %.",
+    ]
+    first_date, last_date = min(active_dates), max(active_dates)
+    exam_text = " ; ".join(f"{a.strftime('%d/%m/%Y')} – {b.strftime('%d/%m/%Y')}" for a, b in exam_periods) or "aucune"
+    limits = [
+        f"<b>Effectifs :</b> « EFFCALCU » est un effectif <b>calculé à partir des inscriptions</b> (nombre d'identifiants d'étudiants rattachés aux groupes de la séance, groupes réunis cumulés), et non un effectif constaté en séance. Il peut donc différer du nombre de présents.",
+        f"<b>Séances sans effectif :</b> {fr_number(schedule['missing_effect_source'], 0)} séances des amphis de Lettres n'ont aucun effectif. Elles ne sont jamais déplacées et leurs heures restent comptées dans le « besoin non résolu ». "
+        + ("Les estimations (option --effectifs-estimes) sont présentées à part (colonne « effectif estimé ») et restent comptées dans le besoin non résolu." if estimates_on else "Aucune estimation n'est utilisée dans cette exécution."),
+        f"<b>Examens :</b> les séances de type examen, contrôle continu, rattrapage, oral, soutenance ou devoir sont distinguées des cours ordinaires. Elles ont des contraintes d'accueil propres (surveillance, espacement) que le modèle ne représente pas : elles sont donc <b>exclues de la réaffectation globale</b> et comptées à part dans les hypothèses.",
+        f"<b>Période couverte :</b> l'export va du {first_date.strftime('%d/%m/%Y')} au {last_date.strftime('%d/%m/%Y')}. Périodes d'examen demandées : {safe_text(exam_text)}. Les examens de mai-juin ne sont pas couverts tant que l'export n'est pas complété jusqu'à la fin de l'année universitaire.",
+        "<b>Séances sans salle :</b> une part importante des lignes de l'export n'a aucun code de salle ; l'occupation réelle des salles est donc sous-estimée.",
+        f"<b>Réaffectation :</b> périmètre = promotions de la structure « SSH - Pau », cours, CM, TD et CTD dans les locaux banalisés du campus de Pau ({st['pool_n']} locaux, toutes capacités). Les TP, réunions et autres types sont hors périmètre ({fr_number(st['other_n'], 0)} séances). Une série (même salle, jour, horaire et groupes) est réaffectée en bloc, vers un local libre à toutes ses dates ; l'équipement des salles, l'accessibilité et l'appartenance des locaux à d'autres composantes ne sont pas vérifiés.",
+        "<b>Lissage (H2, H3b) :</b> test théorique de disponibilité ; les enseignants ne sont pas dans l'export et ne sont pas contrôlés.",
+    ]
+    body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Synthèse V2</h1><p class="muted">Créé le {safe_text(created_at)}</p></div></header>
+<section class="card"><h2>L'essentiel</h2><ul>{"".join(f"<li>{t}</li>" for t in summary)}</ul></section>
+<section class="card"><h2>Hypothèses de report des 3 amphis de Lettres</h2><p class="muted">H1a, H1b et H1c : mêmes jours et horaires, occupations existantes conservées, capacité vérifiée. H2 et H3b (avec lissage) restent pour comparaison. « Besoin non résolu » = sans effectif + effectif estimé + sans solution + non couvertes.</p>
+{sortable_table(["Hypothèse", "Locaux d'accueil", "À reporter", "dont examens", "Reportées (effectif connu)", "Reportées (effectif estimé)", "dont avec chevauchement", "Chevauchements", "Sans effectif", "Sans solution", "Non couvertes (capacité)", "Besoin non résolu"], table_rows)}</section>
+<section class="card"><h2>Conflits persistants</h2><ul>{"".join(persistent)}</ul></section>
+<section class="card"><h2>Données et limites de l'analyse</h2><ul>{"".join(f"<li>{t}</li>" for t in limits)}</ul></section>
+<script>{SORT_SCRIPT}</script></main>"""
+    return html_document("Synthèse V2", created_at, body, BASE_CSS)
+
+
+def reallocation_html(created_at: str, realloc: dict[str, Any]) -> str:
+    """Page « Réaffectation globale » : avant/après par série, dépassements de capacité, locaux."""
+    st = realloc["stats"]
+    kpi = lambda label, value: f'<div class="kpi"><span>{safe_text(label)}</span><strong>{safe_text(value)}</strong></div>'
+    kpis = "".join(
+        (
+            kpi("Cours/TD SSH Pau analysés", f"{fr_number(st['candidate_n'], 0)} séances"),
+            kpi("Séances réaffectées", f"{fr_number(st['moved_sessions'], 0)} ({fr_number(st['moved_hours'], 0)} h)"),
+            kpi("Heures quittant des amphis", f"{fr_number(st['amphi_out_hours'], 0)} h"),
+            kpi("Heures d'amphi libérées (net)", f"{fr_number(st['amphi_net_hours'], 0)} h"),
+            kpi(f"Occupation moyenne des {st['amphi_count']} amphis de Pau", f"{fr_number(st['amphi_rate_before'], 1)} % → {fr_number(st['amphi_rate_after'], 1)} %"),
+            kpi("Remplissage (effectif / capacité)", f"{fr_number(st['fill_before'], 1)} % → {fr_number(st['fill_after'], 1)} %"),
+            kpi("Effectif > capacité", f"{fr_number(st['over_n'], 0)} séances"),
+            kpi("Sans effectif (non réaffectables)", f"{fr_number(st['unknown_n'], 0)} séances · {fr_number(st['unknown_h'], 0)} h"),
+        )
+    )
+    moved = sorted((r for r in realloc["series"] if r["status"] == "réaffecté"), key=lambda r: (-r["freed_hours"], r["room"]))
+    fmt_time = lambda m: f"{m // 60:02d}:{m % 60:02d}"
+    before_after = [
+        [
+            r["room"], r["building"], r["capacity"], f"{r['max_effect']} (moy. {fr_number(r['mean_effect'], 1)})", r["target"], r["target_capacity"],
+            f"{r['weekday']} {fmt_time(r['start'])}–{fmt_time(r['end'])}", f"{r['subject']} ({r['type']})", r["diplomas"], r["sessions"], fr_number(r["freed_hours"], 1),
+        ]
+        for r in moved
+    ]
+    not_moved = Counter(r["status"] for r in realloc["series"] if r["status"] != "réaffecté")
+    not_moved_rows = [
+        [label, count, fr_number(sum(r["hours"] for r in realloc["series"] if r["status"] == label), 0)] for label, count in not_moved.most_common()
+    ]
+    over_rows = [[r["DATE"], r["LOCAL"], r["CAPACITE"], r["EFFECTIF"], r["DEPASSEMENT"], r["TYPE"], r["LIBELLE_MAT"], r["EXAMEN"]] for r in realloc["over"][:300]]
+    room_rows = [
+        [r["room"], r["building"], r["capacity"], fr_number(r["hours_before"], 1), fr_number(r["rate_before"], 1), fr_number(r["hours_after"], 1),
+         fr_number(r["rate_after"], 1), fr_number(r["rate_after"] - r["rate_before"], 1), r["fill_before"], r["fill_after"]]
+        for r in sorted(realloc["rooms"], key=lambda r: -abs(r["rate_after"] - r["rate_before"]))
+    ]
+    body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Réaffectation globale selon les effectifs</h1><p class="muted">Cours, CM, TD et CTD du collège SSH à Pau, dans les locaux banalisés du campus de Pau. Mêmes jours et horaires, aucun conflit créé. Créé le {safe_text(created_at)}</p></div></header>
+<div class="kpis">{kpis}</div>
+<section class="card"><h2>Comment c'est calculé</h2><p>Pour chaque série de cours (même salle, même jour de la semaine, même horaire, mêmes groupes), on compare l'effectif le plus élevé à la capacité du local. Si un local d'au moins 20 places de moins suffit et est libre à <b>toutes</b> les dates de la série, la série y est transférée. Les séries les plus surdimensionnées sont traitées en premier, et chaque décision met à jour les disponibilités : les propositions sont donc compatibles entre elles. Les examens, TP et séances sans effectif ne sont pas déplacés.</p></section>
+<section class="card"><h2>Tableau avant / après</h2><p class="muted">Une ligne par série réaffectée. « Heures libérées » = heures de cours qui quittent le local actuel.</p>
+<div class="filters"><input id="q" type="search" placeholder="Rechercher un local, une matière, une promotion…"></div>
+{sortable_table(["Local actuel", "Bât.", "Capacité", "Effectif max", "Local proposé", "Capacité proposée", "Créneau", "Matière", "Promotions", "Séances", "Heures libérées"], before_after, 9, "tb")}</section>
+<section class="card"><h2>Séries non réaffectées</h2>{sortable_table(["Raison", "Séries", "Heures"], not_moved_rows, 1)}</section>
+<section class="card"><h2>Séances dont l'effectif dépasse la capacité</h2><p class="muted">Effectif calculé à partir des inscriptions : à vérifier (capacité obsolète ou groupes cumulés). 300 premières lignes ; liste complète dans le CSV 22.</p>
+{sortable_table(["Date", "Local", "Capacité", "Effectif", "Dépassement", "Type", "Matière", "Examen"], over_rows, 2)}</section>
+<section class="card"><h2>Locaux : avant / après</h2><p class="muted">Taux d'occupation 08h-18h (points de %) et remplissage moyen. Triés par variation décroissante.</p>
+{sortable_table(["Local", "Bât.", "Capacité", "Heures avant", "Taux avant (%)", "Heures après", "Taux après (%)", "Variation (pts)", "Remplissage avant (%)", "Remplissage après (%)"], room_rows, 2)}</section>
+<script>{SORT_SCRIPT}document.getElementById('q').addEventListener('input',e=>{{const q=e.target.value.toLowerCase();document.querySelectorAll('#tb tbody tr').forEach(r=>r.hidden=q&&!r.innerText.toLowerCase().includes(q))}});</script></main>"""
+    return html_document("Réaffectation globale", created_at, body, BASE_CSS)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -2654,10 +3088,13 @@ def main(argv: list[str] | None = None) -> int:
             raise SourceError(f"Colonnes requises absentes de {promotion_path.name}.")
         promotion_effects: dict[str, set[int]] = defaultdict(set)
         promotion_names: set[str] = set()
+        ssh_pau_names: set[str] = set()
         for row in promotion_iterator:
             name = row.get("NOM_DIP", "").strip()
             if name:
                 promotion_names.add(name)
+                if "<Structure>SSH - Pau" in str(row.get("FAMILLE", "")):
+                    ssh_pau_names.add(name)
                 value = parse_effect(str(row.get("EFFCALCU", "")).strip())
                 if value is not None:
                     promotion_effects[name].add(value)
@@ -2718,7 +3155,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Modèle créé : {destination} ({count} NOM_DIP distincts, recopiés sans normalisation).")
             return 0
 
+        surfaces_path = args.surfaces.expanduser().resolve() if args.surfaces else next(iter(sorted(directory.glob("SURFACES*.xlsx"))), None)
+        building_sites = load_building_sites(surfaces_path) if surfaces_path and surfaces_path.is_file() else {}
         recipients_h1 = [room for room in rooms.values() if room.building == "DEG" and room.kind == "amphi"]
+        recipients_pau = recipients_h1 + [
+            room for room in rooms.values()
+            if room.kind == "amphi" and room.building not in {"DEG", "LET"} and (room.capacity or 0) > 0
+            and building_sites.get(room.building, {}).get("site") == "CAMPUS DE PAU"
+        ]
         recipients_h3 = [
             room
             for room in rooms.values()
@@ -2740,14 +3184,12 @@ def main(argv: list[str] | None = None) -> int:
         manual_checks = independent_manual_check(
             schedule_path, events, let_amp_codes, start, end, excluded_weeks, schedule["holidays"]
         )
-        h1 = scenario_result("H1", baseline_without_source, source_events, recipients_h1, active_dates, False)
-        h2 = scenario_result("H2", baseline_without_source, source_events, recipients_h1, active_dates, True)
-        h3a = scenario_result("H3a", baseline_without_source, source_events, recipients_h3, active_dates, False)
-        h3b = scenario_result("H3b", baseline_without_source, source_events, recipients_h3, active_dates, True)
-        validate_scenario("H1", h1, source_events, recipients_h1, False)
-        validate_scenario("H2", h2, source_events, recipients_h1, True)
-        validate_scenario("H3a", h3a, source_events, recipients_h3, False)
-        validate_scenario("H3b", h3b, source_events, recipients_h3, True)
+        recipients_by_key = {"H1a": recipients_h1, "H1b": recipients_h3, "H1c": recipients_pau, "H2": recipients_h1, "H3b": recipients_h3}
+        flexible_keys = {"H2", "H3b"}
+        scenarios: dict[str, dict[str, Any]] = {}
+        for key, recipients in recipients_by_key.items():
+            scenarios[key] = scenario_result(key, baseline_without_source, source_events, recipients, active_dates, key in flexible_keys)
+            validate_scenario(key, scenarios[key], source_events, recipients, key in flexible_keys)
 
         run_directory, stamp, created_at = create_run_directory(args.sortie.expanduser().resolve())
         ref_conflicts = find_conflicts(events)
@@ -2765,7 +3207,6 @@ def main(argv: list[str] | None = None) -> int:
             "accountedHours": sum(active_minutes(event) for event in events) / 60,
             "conflicts": len(ref_conflicts),
         }
-        scenarios: dict[str, dict[str, Any]] = {"H1": h1, "H2": h2, "H3a": h3a, "H3b": h3b}
         scenario_summaries: dict[str, dict[str, Any]] = {}
         scenario_pages: list[tuple[str, dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]] = []
         for key, result in scenarios.items():
@@ -2799,7 +3240,7 @@ def main(argv: list[str] | None = None) -> int:
             render_dashboard("Occupation des salles · Référence 2025-2026", "Occupation issue des séances localisées", created_at, reference_rows, reference_weeks, serialize_conflicts(ref_conflicts), reference_summary, len(active_dates), stamp),
             encoding="utf-8",
         )
-        scenario_names = {"H1": "02_H1_reel_brut", "H2": "03_H2_lissage", "H3a": "04_H3a_grandes_salles_brut", "H3b": "05_H3b_grandes_salles_lissage"}
+        scenario_names = {"H1a": "02_H1a_amphis_DEG", "H2": "03_H2_lissage_DEG", "H1b": "04_H1b_DEG_grandes_salles", "H3b": "05_H3b_lissage_grandes_salles", "H1c": "05b_H1c_amphis_campus_Pau"}
         for key, result, rows, weeks in scenario_pages:
             page_path = run_directory / f"{scenario_names[key]}_{stamp}.html"
             page_path.write_text(
@@ -2827,8 +3268,6 @@ def main(argv: list[str] | None = None) -> int:
         indicators_path.write_text(indicators_page, encoding="utf-8")
 
         template_path = args.modele_dashboard.expanduser().resolve()
-        surfaces_path = args.surfaces.expanduser().resolve() if args.surfaces else next(iter(sorted(directory.glob("SURFACES*.xlsx"))), None)
-        building_sites = load_building_sites(surfaces_path) if surfaces_path and surfaces_path.is_file() else {}
         if building_sites:
             used = {room["building"] for room in reference_rows}
             unmatched = sorted(code for code in used if code not in building_sites)
@@ -2854,14 +3293,33 @@ def main(argv: list[str] | None = None) -> int:
         stories = {
             key: scenario_story(
                 key, result, scenario_summaries[key], source_events,
-                recipients_h3 if key in {"H3a", "H3b"} else recipients_h1,
+                recipients_by_key[key],
                 reference_rows, rows_by_key[key], indicators["occupancy"], ref_conflicts,
             )
             for key, result in scenarios.items()
         }
+        hyp_rows = hypothesis_rows(scenarios, source_events, recipients_by_key)
+        write_csv(run_directory / f"18_hypotheses_report_{stamp}.csv", list(hypotheses_csv_rows(hyp_rows)[0]), hypotheses_csv_rows(hyp_rows))
+        pool = reallocation_pool(rooms, building_sites)
+        realloc = simulate_global_reallocation(events, rooms, pool, ssh_pau_names, active_dates)
+        series_headers = ["room", "code", "building", "kind", "capacity", "max_effect", "mean_effect", "weekday", "start", "end", "subject", "type", "diplomas", "sessions", "hours", "target", "target_code", "target_capacity", "target_building", "target_kind", "freed_hours", "status"]
+        write_csv(run_directory / f"19_reaffectation_avant_apres_{stamp}.csv", series_headers, realloc["series"])
+        session_headers = list(realloc["sessions"][0]) if realloc["sessions"] else ["ID_SEANCE"]
+        write_csv(run_directory / f"20_reaffectation_seances_{stamp}.csv", session_headers, realloc["sessions"])
+        room_headers = ["code", "room", "building", "kind", "capacity", "hours_before", "rate_before", "hours_after", "rate_after", "fill_before", "fill_after"]
+        write_csv(run_directory / f"21_reaffectation_locaux_{stamp}.csv", room_headers, realloc["rooms"])
+        over_headers = ["DATE", "LOCAL", "BATIMENT", "CAPACITE", "EFFECTIF", "DEPASSEMENT", "TYPE", "LIBELLE_MAT", "NOM_DIP", "EXAMEN"]
+        write_csv(run_directory / f"22_effectif_superieur_capacite_{stamp}.csv", over_headers, realloc["over"])
+        v2_summary = synthesis_v2_html(created_at, hyp_rows, realloc, schedule, active_dates, exam_periods, bool(args.effectifs_estimes))
+        v2_realloc = reallocation_html(created_at, realloc)
+        (run_directory / f"18_synthese_v2_{stamp}.html").write_text(v2_summary, encoding="utf-8")
+        (run_directory / f"19_reaffectation_globale_{stamp}.html").write_text(v2_realloc, encoding="utf-8")
+        dashboard_pages["synthese_v2"] = v2_summary
+        dashboard_pages["reallocation"] = v2_realloc
         amphis_page = amphis_html(
             created_at, rooms, building_sites,
-            {"Référence": events, **{key: result["events"] for key, result in scenarios.items()}}, active_dates, exam_periods,
+            {"Référence": events, **{key: result["events"] for key, result in scenarios.items()}, "Réaffectation": realloc["events"]},
+            active_dates, exam_periods,
         )
         (run_directory / f"16_amphis_{stamp}.html").write_text(amphis_page, encoding="utf-8")
         dashboard_pages["amphis"] = amphis_page
@@ -2904,6 +3362,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Heures source des amphithéâtres LET : {source_total_hours:.2f} h ; conservation vérifiée pour chaque scénario (placées + statuts).")
         if ref_conflicts:
             print(f"Chevauchements dans la référence : {len(ref_conflicts)} ; ils restent visibles et ne sont pas réécrits.")
+        rs = realloc["stats"]
+        print(f"Réaffectation globale SSH Pau : {rs['moved_sessions']} séances ({rs['moved_hours']:.0f} h) réaffectées, {rs['amphi_net_hours']:.0f} h d'amphi libérées (net), {rs['over_n']} séances avec effectif > capacité.")
         print("Contrôles H2/H3b : aucun chevauchement dans les locaux d'accueil ; capacités respectées ; toutes les séances classées.")
         return 0
     except (OSError, csv.Error, SourceError, AnalysisError, ValueError) as error:
