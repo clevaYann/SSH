@@ -945,6 +945,11 @@ def scenario_result(
         "statuses": status_by_id,
         "source_minutes": source_minutes,
         "accounted_minutes": accounted_minutes,
+        "source_active_minutes": sum(active_minutes(source) for source in sources),
+        "accounted_active_minutes": sum(active_minutes(event) for event in placed) + sum(
+            active_minutes(source) for source in sources
+            if status_by_id[source["id"]]["status"] not in {"place", "place_avec_chevauchement"}
+        ),
         "conflicts": find_conflicts(final_events, {room.code for room in recipients}),
     }
 
@@ -1058,9 +1063,9 @@ def summarize_scenario(result: dict[str, Any]) -> dict[str, Any]:
         "noSolution": counts["sans_solution"],
         "uncovered": counts["non_couvert"],
         "unknownEffect": counts["effectif_inconnu"],
-        "placedHours": sum(event["duration"] for event in result["placed"]) / 60,
-        "sourceHours": result["source_minutes"] / 60,
-        "accountedHours": result["accounted_minutes"] / 60,
+        "placedHours": sum(active_minutes(event) for event in result["placed"]) / 60,
+        "sourceHours": result["source_active_minutes"] / 60,
+        "accountedHours": result["accounted_active_minutes"] / 60,
         "conflicts": len(result["conflicts"]),
     }
 
@@ -1495,7 +1500,7 @@ CASE_EXPLANATIONS: dict[str, dict[str, str]] = {
     "synthese_v2": {
         "title": "Synthèse V2 : les trois hypothèses, la réaffectation, les limites",
         "what": "Le bilan chiffré de H1a, H1b et H1c (séances et heures reportées, chevauchements, besoins sans solution), puis les conflits qui restent et les limites des données.",
-        "how": "Commencez ici. « Besoin non résolu » additionne les cours sans effectif connu, ceux dont l'effectif est estimé, ceux sans solution et ceux qu'aucune salle n'accueille.",
+        "how": "Commencez ici. Toutes les heures sont comptées entre 08h et 18h. « Besoin non résolu » additionne les cours sans effectif connu, ceux dont l'effectif est estimé, ceux sans solution et ceux qu'aucune salle n'accueille.",
     },
     "reallocation": {
         "title": "Réaffectation globale : mettre chaque cours dans une salle de la bonne taille",
@@ -1616,7 +1621,7 @@ def scenario_story(
             f", {not_moved[0]}." if len(not_moved) == 1 else " : " + ", ".join(not_moved) + "."
         )
     lines = [
-        f"Il y a {fr_number(total, 0)} cours à déplacer ({fr_number(summary['sourceHours'], 0)} h). "
+        f"Il y a {fr_number(total, 0)} cours à déplacer ({fr_number(summary['sourceHours'], 0)} h entre 8 h et 18 h). "
         f"{fr_number(summary['placed'], 0)} ont trouvé une salle." + unplaced_text
     ]
     if estimated:
@@ -1660,7 +1665,7 @@ def unknown_effect_rows(source_events: list[dict[str, Any]]) -> list[dict[str, A
                 "ID_SEANCE": event["id"], "DATE": event["date"].isoformat(), "JOUR": weekdays[event["date"].weekday()],
                 "HDEBUT": f"{event['start'] // 60:02d}:{event['start'] % 60:02d}", "HFIN": f"{event['end'] // 60:02d}:{event['end'] % 60:02d}",
                 "NOM_SAL": event["room_name"], "TYPE": event["type"], "LIBELLE_MAT": event["subject"], "NOM_DIP": group,
-                "ORIGINE": origin, "HEURES": round(event["duration"] / 60, 2), "EFFECTIF_A_RENSEIGNER": "",
+                "ORIGINE": origin, "HEURES": round(active_minutes(event) / 60, 2), "EFFECTIF_A_RENSEIGNER": "",
             }
         )
     return rows
@@ -1894,7 +1899,7 @@ def summary_html(
     list_notes = "".join(f"<li>{safe_text(note)}</li>" for note in notes)
     body = f"""<main><header><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Synthèse · Faisabilité du report des amphithéâtres LET</h1><p>Créé le {safe_text(created_at)} · Période analysée {calendars['start']} au {calendars['end']}</p></header>
 <section><h2>Indicateurs vérifiables</h2><p>Heures-salles de référence : <strong>{reference_total_hours:.2f} h</strong>. {len(data['events'])} séances localisées après dédoublonnage ; {data['source_rows']} lignes brutes.</p><p>Le modèle de simulation n'affirme une faisabilité que pour les séances effectivement placées dans une salle de capacité suffisante. « Effectif inconnu », « non couvert » et « sans solution » restent des résultats distincts.</p></section>
-<section><h2>Scénarios</h2><div class="tablewrap"><table><thead><tr><th>Scénario</th><th>Placées</th><th>Avec chevauchement</th><th>Non couvertes</th><th>Sans solution</th><th>Effectif inconnu</th><th>Heures source / comptabilisées</th></tr></thead><tbody>{table_rows}</tbody></table></div></section>
+<section><h2>Scénarios</h2><div class="tablewrap"><table><thead><tr><th>Scénario</th><th>Placées</th><th>Avec chevauchement</th><th>Non couvertes</th><th>Sans solution</th><th>Effectif inconnu</th><th>Heures 8h-18h source / comptabilisées</th></tr></thead><tbody>{table_rows}</tbody></table></div></section>
 <section><h2>Saturation hebdomadaire de référence</h2><p>Somme des heures réservées par local divisée par les heures ouvrées de la semaine. Les taux supérieurs à 100 % signalent des chevauchements conservés, pas une capacité physique supérieure.</p><div class="tablewrap"><table><thead><tr><th>Local</th><th>Bât.</th><th>Semaine</th><th>Taux</th></tr></thead><tbody>{saturated_rows}</tbody></table></div></section>
 <section><h2>Hypothèses et limites</h2><ul>{list_notes}</ul></section>
 <section><h2>Contrôle qualité des sources</h2><div class="tablewrap"><table><thead><tr><th>Colonne</th><th>Valeurs vides</th></tr></thead><tbody>{source_lines}</tbody></table></div><p>PERIODE et la date sont contrôlées à l'exécution. Les occupations impossibles à attribuer à une salle physique (CODE_SAL manquant/inconnu) ne sont pas réparties arbitrairement.</p><details><summary>Promotions NOM_DIP non reconnues à l'identique par EXP_PROMOTION</summary><ul>{promotions}</ul>{f'<p>Liste tronquée à 150 valeurs ; {extra_promotions} autres.</p>' if extra_promotions else ''}</details><p>Effectif noté comme inconnu si EFFCALCU est vide, nul, non entier ou contradictoire sur une même clé de séance.</p></section>
@@ -2479,7 +2484,7 @@ def build_indicators(
         "oversized": len(oversized),
         "movable": len(movable),
         "freedAmphi": len(freed_amphi),
-        "freedAmphiHours": sum(row["end"] - row["start"] for row in freed_amphi) / 60,
+        "freedAmphiHours": sum(clipped_minutes(row["start"], row["end"]) for row in freed_amphi) / 60,
         "breakdown": breakdown,
     }
 
@@ -2688,7 +2693,7 @@ def hypothesis_rows(
 
         def add(name: str, event: dict[str, Any]) -> None:
             acc[name][0] += 1
-            acc[name][1] += event["duration"] / 60
+            acc[name][1] += active_minutes(event) / 60
 
         for source_id, status in result["statuses"].items():
             event = by_id[source_id]
@@ -2760,7 +2765,7 @@ def simulate_global_reallocation(
     prepared.sort(key=lambda p: (-((p[2].capacity or 0) - (p[4] or 0)) if p[3] else 0, p[0][0], p[0][1]))
 
     for key, items, current, known, max_effect in prepared:
-        hours = sum(e["duration"] for e in items) / 60
+        hours = sum(active_minutes(e) for e in items) / 60
         row = {
             "room": current.name, "code": current.code, "building": current.building, "kind": current.kind, "capacity": current.capacity,
             "max_effect": max_effect, "mean_effect": round(sum(e["effect"] for e in items) / len(items), 1) if known else None,
@@ -2821,7 +2826,7 @@ def simulate_global_reallocation(
                 "LOCAL_PROPOSE": target.name if target else event["room_name"],
                 "CAPACITE_PROPOSEE": target.capacity if target else event["capacity"],
                 "STATUT": "réaffectée" if target else "inchangée",
-                "HEURES": round(event["duration"] / 60, 2),
+                "HEURES": round(active_minutes(event) / 60, 2),
             }
         )
 
@@ -2845,8 +2850,8 @@ def simulate_global_reallocation(
     after_occ = occupancy_by_room(final_events, pool_rooms, active_dates)
 
     def weighted_fill(stream: list[dict[str, Any]], ids: set[str]) -> float:
-        num = sum((e["effect"] or 0) * e["duration"] for e in stream if e["id"] in ids and e["effect"] is not None and e["capacity"])
-        den = sum(e["capacity"] * e["duration"] for e in stream if e["id"] in ids and e["effect"] is not None and e["capacity"])
+        num = sum((e["effect"] or 0) * active_minutes(e) for e in stream if e["id"] in ids and e["effect"] is not None and e["capacity"])
+        den = sum(e["capacity"] * active_minutes(e) for e in stream if e["id"] in ids and e["effect"] is not None and e["capacity"])
         return 100 * num / den if den else 0.0
 
     known_ids = {e["id"] for e in candidates if e["effect"] is not None}
@@ -2879,11 +2884,11 @@ def simulate_global_reallocation(
     unknown = [e for e in candidates if e["effect"] is None]
     moved_series = [r for r in series_rows if r["status"] == "réaffecté"]
     stats = {
-        "scope_n": len(scope), "scope_h": sum(e["duration"] for e in scope) / 60,
-        "candidate_n": len(candidates), "candidate_h": sum(e["duration"] for e in candidates) / 60,
-        "exam_n": len(exam_events), "exam_h": sum(e["duration"] for e in exam_events) / 60,
-        "other_n": len(other_events), "other_h": sum(e["duration"] for e in other_events) / 60,
-        "unknown_n": len(unknown), "unknown_h": sum(e["duration"] for e in unknown) / 60,
+        "scope_n": len(scope), "scope_h": sum(active_minutes(e) for e in scope) / 60,
+        "candidate_n": len(candidates), "candidate_h": sum(active_minutes(e) for e in candidates) / 60,
+        "exam_n": len(exam_events), "exam_h": sum(active_minutes(e) for e in exam_events) / 60,
+        "other_n": len(other_events), "other_h": sum(active_minutes(e) for e in other_events) / 60,
+        "unknown_n": len(unknown), "unknown_h": sum(active_minutes(e) for e in unknown) / 60,
         "series_n": len(series_rows), "moved_series": len(moved_series),
         "moved_sessions": sum(r["sessions"] for r in moved_series), "moved_hours": sum(r["hours"] for r in moved_series),
         "amphi_out_hours": out_hours, "amphi_in_hours": in_hours, "amphi_net_hours": out_hours - in_hours,
@@ -3048,7 +3053,7 @@ def reallocation_section(realloc: dict[str, Any], key: str, label: str) -> str:
     body = f"""<div class="rz" data-h="{safe_text(key)}"><h2>{safe_text(label)}</h2>
 <div class="kpis">{kpis}</div>
 <section class="card"><h2>Comment c'est calculé</h2><p>Pour chaque série de cours (même salle, même jour de la semaine, même horaire, mêmes groupes), on compare l'effectif le plus élevé à la capacité du local. Si un local d'au moins 20 places de moins suffit et est libre à <b>toutes</b> les dates de la série, la série y est transférée. Les séries les plus surdimensionnées sont traitées en premier, et chaque décision met à jour les disponibilités : les propositions sont donc compatibles entre elles. Les examens, TP et séances sans effectif ne sont pas déplacés.</p></section>
-<section class="card"><h2>Tableau avant / après</h2><p class="muted">Une ligne par série réaffectée. « Heures libérées » = heures de cours qui quittent le local actuel.</p>
+<section class="card"><h2>Tableau avant / après</h2><p class="muted">Une ligne par série réaffectée. « Heures libérées » = heures de cours entre 08h et 18h qui quittent le local actuel (les heures en soirée ne comptent pas).</p>
 <div class="filters"><input class="rq" data-t="tb_{safe_text(key)}" type="search" placeholder="Rechercher un local, une matière, une promotion…"></div>
 {sortable_table(["Local actuel", "Bât.", "Capacité", "Effectif max", "Local proposé", "Capacité proposée", "Créneau", "Matière", "Promotions", "Séances", "Heures libérées"], before_after, 9, f"tb_{key}")}</section>
 <section class="card"><h2>Séries non réaffectées</h2>{sortable_table(["Raison", "Séries", "Heures"], not_moved_rows, 1)}</section>
@@ -3254,7 +3259,7 @@ def main(argv: list[str] | None = None) -> int:
         saturated.sort(key=lambda row: row["rate"], reverse=True)
 
         over_rows = overdimension_rows(events, rooms)
-        source_total_hours = sum(event["duration"] for event in source_events) / 60
+        source_total_hours = sum(active_minutes(event) for event in source_events) / 60
         calendar_info = {"start": start.isoformat(), "end": end.isoformat()}
         summary_data = dict(schedule)
         summary_data["room_notes"] = room_notes
@@ -3394,7 +3399,7 @@ def main(argv: list[str] | None = None) -> int:
         for path in [*indicator_files, anomaly_csv, indicators_path]:
             print(f"{path.name[:2]} {path.name}")
         print(f"Jours pédagogiques retenus : {len(active_dates)} ; fériés nationaux retranchés ; périodes hors calendrier observé exclues.")
-        print(f"Heures source des amphithéâtres LET : {source_total_hours:.2f} h ; conservation vérifiée pour chaque scénario (placées + statuts).")
+        print(f"Heures source des amphithéâtres LET (08h-18h) : {source_total_hours:.2f} h ; conservation vérifiée pour chaque scénario (placées + statuts).")
         if ref_conflicts:
             print(f"Chevauchements dans la référence : {len(ref_conflicts)} ; ils restent visibles et ne sont pas réécrits.")
         rs = realloc["stats"]
