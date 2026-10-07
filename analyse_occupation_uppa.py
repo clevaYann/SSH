@@ -1651,6 +1651,51 @@ def scenario_story(
     return lines
 
 
+def estimate_missing_effects(
+    events: list[dict[str, Any]], promotion_effects: dict[str, set[int]]
+) -> tuple[list[dict[str, Any]], Counter[str]]:
+    """Estime l'effectif des séances qui n'en ont pas, à partir des autres données du planning (jamais présenté comme constaté).
+
+    Ordre de priorité, du plus fiable au moins fiable :
+    1. même groupe : plus grand effectif de ses autres séances (>= effectif réel dans 99 % des cas contrôlés) ;
+    2. groupes frères « <Promotion><sous-ensemble>... » : plus grand effectif connu (>= réel dans 83 % des cas) ;
+    3. promotion parente dans EXP_PROMOTION (>= réel dans 96 % des cas contrôlés sur les amphis de Lettres).
+    """
+    known: dict[str, list[int]] = defaultdict(list)
+    for event in events:
+        if event["effect"] is not None and len(event["diplomas"]) == 1:
+            known[event["diplomas"][0]].append(event["effect"])
+    siblings: dict[str, set[str]] = defaultdict(set)
+    for name in known:
+        if name.startswith("<") and ">" in name:
+            siblings[name[: name.rfind(">") + 1]].add(name)
+    output: list[dict[str, Any]] = []
+    methods: Counter[str] = Counter()
+    for event in events:
+        if event["effect"] is not None or len(event["diplomas"]) != 1:
+            output.append(event)
+            continue
+        name = event["diplomas"][0]
+        value, method = None, ""
+        if known.get(name):
+            value, method = max(known[name]), "même groupe, autres séances"
+        elif name.startswith("<") and ">" in name:
+            others = [max(known[m]) for m in siblings.get(name[: name.rfind(">") + 1], ()) if m != name]
+            if others:
+                value, method = max(others), "groupes frères (maximum)"
+            else:
+                parent = re.match(r"<([^>]*)>", name)
+                parent_values = promotion_effects.get(parent.group(1), set()) if parent else set()
+                if parent_values:
+                    value, method = max(parent_values), "promotion parente (EXP_PROMOTION)"
+        if value:
+            output.append(dict(event, effect=value, effect_estimated=True, effect_method=method, effect_issue=f"estimé : {method}"))
+            methods[method] += 1
+        else:
+            output.append(event)
+    return output, methods
+
+
 def unknown_effect_rows(source_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Séances des amphis à reporter dont l'effectif reste inconnu (donc non placées dans les simulations)."""
     weekdays = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
@@ -2242,8 +2287,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--effectifs-estimes",
         action="store_true",
-        help="Pour les séances des amphis LET sans EFFCALCU et de la forme « <Promotion>groupe », retient l'effectif de la "
-        "promotion parent d'EXP_PROMOTION comme majorant (estimation marquée comme telle).",
+        help="Estime l'effectif des séances sans EFFCALCU (même groupe, groupes frères, promotion parente) comme majorant ; "
+        "toujours marqué « estimé » et compté à part.",
     )
     parser.add_argument("--sortie", type=Path, default=Path(__file__).resolve().parent)
     parser.add_argument("--debut", help="Date ISO YYYY-MM-DD incluse.")
@@ -2904,13 +2949,16 @@ def simulate_global_reallocation(
             "room": current.name, "code": current.code, "building": current.building, "kind": current.kind, "capacity": current.capacity,
             "max_effect": max_effect, "mean_effect": round(sum(e["effect"] for e in items) / len(items), 1) if known else None,
             "weekday": WEEKDAYS_FR[key[4]], "start": key[5], "end": key[6], "subject": key[1], "type": key[2],
+            "estimated": any(e.get("effect_estimated") for e in items),
             "diplomas": " | ".join(key[3]), "sessions": len(items), "hours": round(hours, 2),
             "target": "", "target_code": "", "target_capacity": None, "target_building": "", "target_kind": "", "freed_hours": 0.0, "status": "",
         }
         if not known:
             row["status"] = "effectif inconnu : non réaffectable"
         elif max_effect > (current.capacity or 0):
-            row["status"] = "effectif supérieur à la capacité : à traiter à part"
+            row["status"] = (
+                "effectif estimé supérieur à la capacité : non réaffecté" if row["estimated"] else "effectif supérieur à la capacité : à traiter à part"
+            )
         else:
             targets = [
                 r for r in pool_list
@@ -3013,7 +3061,7 @@ def simulate_global_reallocation(
             "NOM_DIP": " | ".join(e["diplomas"]), "EXAMEN": "oui" if e.get("is_exam") else "non",
         }
         for e in sorted(scope, key=lambda e: (-(e["effect"] or 0) + (e["capacity"] or 0), e["date"]))
-        if e["effect"] is not None and e["capacity"] and e["effect"] > e["capacity"]
+        if e["effect"] is not None and e["capacity"] and e["effect"] > e["capacity"] and not e.get("effect_estimated")
     ]
     unknown = [e for e in candidates if e["effect"] is None]
     moved_series = [r for r in series_rows if r["status"] == "réaffecté"]
@@ -3031,6 +3079,9 @@ def simulate_global_reallocation(
         "amphi_count": len(amphis),
         "fill_before": weighted_fill(events, known_ids), "fill_after": weighted_fill(final_events, known_ids),
         "over_n": len(over_rows), "pool_n": len(pool),
+        "moved_estimated_sessions": sum(r["sessions"] for r in moved_series if r["estimated"]),
+        "moved_estimated_hours": sum(r["hours"] for r in moved_series if r["estimated"]),
+        "estimated_candidate_n": sum(1 for e in candidates if e.get("effect_estimated")),
         "no_room_series": sum(1 for r in series_rows if r["status"].startswith("non réaffecté")),
         "no_room_hours": sum(r["hours"] for r in series_rows if r["status"].startswith("non réaffecté")),
         "adapted_series": sum(1 for r in series_rows if r["status"].startswith("déjà adapté")),
@@ -3121,7 +3172,12 @@ def synthesis_v2_html(
     limits = [
         f"<b>Effectifs :</b> « EFFCALCU » est un effectif <b>calculé à partir des inscriptions</b> (nombre d'identifiants d'étudiants rattachés aux groupes de la séance, groupes réunis cumulés), et non un effectif constaté en séance. Il peut donc différer du nombre de présents.",
         f"<b>Séances sans effectif :</b> {fr_number(schedule['missing_effect_source'], 0)} séances des amphis de Lettres n'ont aucun effectif. Elles ne sont jamais déplacées et leurs heures restent comptées dans le « besoin non résolu ». "
-        + ("Les estimations (option --effectifs-estimes) sont présentées à part (colonne « effectif estimé ») et restent comptées dans le besoin non résolu." if estimates_on else "Aucune estimation n'est utilisée dans cette exécution."),
+        + (
+            f"Les estimations (option --effectifs-estimes) sont présentées à part (colonne « effectif estimé ») et restent comptées dans le besoin non résolu. {fr_number(schedule.get('estimated_all', 0), 0)} séances localisées ont un effectif estimé (majorant), selon la méthode : "
+            + ", ".join(f"{m} : {fr_number(c, 0)}" for m, c in schedule.get("estimate_methods", {}).items())
+            + ". Un majorant est supérieur ou égal à l'effectif réel dans 99 % (même groupe), 83 % (groupes frères) et environ 96 % (promotion parente) des cas contrôlés ; il est volontairement prudent pour ne jamais surcharger une salle."
+            if estimates_on else "Aucune estimation n'est utilisée dans cette exécution."
+        ),
         f"<b>Examens :</b> les séances de type examen, contrôle continu, rattrapage, oral, soutenance ou devoir sont distinguées des cours ordinaires. Elles ont des contraintes d'accueil propres (surveillance, espacement) que le modèle ne représente pas : elles sont donc <b>exclues de la réaffectation globale</b> et comptées à part dans les hypothèses.",
         f"<b>Période couverte :</b> l'export va du {first_date.strftime('%d/%m/%Y')} au {last_date.strftime('%d/%m/%Y')}. Périodes d'examen demandées : {safe_text(exam_text)}. Les examens de mai-juin ne sont pas couverts tant que l'export n'est pas complété jusqu'à la fin de l'année universitaire.",
         "<b>Séances sans salle :</b> une part importante des lignes de l'export n'a aucun code de salle ; l'occupation réelle des salles est donc sous-estimée.",
@@ -3162,6 +3218,7 @@ def reallocation_section(realloc: dict[str, Any], key: str, label: str) -> str:
             kpi(f"Occupation moyenne des {st['amphi_count']} amphis de Pau", f"{fr_number(st['amphi_rate_before'], 1)} % → {fr_number(st['amphi_rate_after'], 1)} %"),
             kpi("Remplissage (effectif / capacité)", f"{fr_number(st['fill_before'], 1)} % → {fr_number(st['fill_after'], 1)} %"),
             kpi("Effectif > capacité", f"{fr_number(st['over_n'], 0)} séances"),
+            kpi("dont fondées sur un effectif estimé", f"{fr_number(st['moved_estimated_sessions'], 0)} séances ({fr_number(st['moved_estimated_hours'], 0)} h)"),
             kpi("Sans effectif (non réaffectables)", f"{fr_number(st['unknown_n'], 0)} séances · {fr_number(st['unknown_h'], 0)} h"),
         )
     )
@@ -3169,7 +3226,7 @@ def reallocation_section(realloc: dict[str, Any], key: str, label: str) -> str:
     fmt_time = lambda m: f"{m // 60:02d}:{m % 60:02d}"
     before_after = [
         [
-            r["room"], r["building"], r["capacity"], f"{r['max_effect']} (moy. {fr_number(r['mean_effect'], 1)})", r["target"], r["target_capacity"],
+            r["room"], r["building"], r["capacity"], f"{r['max_effect']}{' (estimé)' if r['estimated'] else ''}", r["target"], r["target_capacity"],
             f"{r['weekday']} {fmt_time(r['start'])}–{fmt_time(r['end'])}", f"{r['subject']} ({r['type']})", r["diplomas"], r["sessions"], fr_number(r["freed_hours"], 1),
         ]
         for r in moved
@@ -3283,25 +3340,19 @@ def main(argv: list[str] | None = None) -> int:
         source_codes = {room.code for room in rooms.values() if room.building == "LET" and room.kind == "amphi"}
         source_events = [event for event in events if event["room_code"] in source_codes]
         schedule["missing_effect"] = sum(event["effect"] is None for event in events)
-        estimated_count = 0
+        estimate_methods: Counter[str] = Counter()
         if args.effectifs_estimes:
-            # Majorant : pour une séance sans EFFCALCU dont l'unique promotion s'écrit « <Parent>groupe », on retient l'effectif
-            # de la promotion parent dans EXP_PROMOTION (borne haute, valable dans 96 % des séances contrôlées). Limité aux
-            # séances à reporter : la référence et les classements gardent les seuls effectifs du planning.
-            estimated_sources = []
-            for event in source_events:
-                parent = re.match(r"<([^>]*)>", event["diplomas"][0]) if len(event["diplomas"]) == 1 else None
-                values = {v for v in promotion_effects.get(parent.group(1), ())} if parent else set()
-                if event["effect"] is None and values:
-                    event = dict(
-                        event, effect=max(values), effect_estimated=True,
-                        effect_issue=f"majorant : effectif de la promotion parent « {parent.group(1)} »",
-                    )
-                    estimated_count += 1
-                estimated_sources.append(event)
-            source_events = estimated_sources
+            # Estimations jamais mélangées aux effectifs du planning : marquées « estimé » partout et comptées à part.
+            events, estimate_methods = estimate_missing_effects(events, promotion_effects)
+            schedule["events"] = events
+        source_events = [event for event in events if event["room_code"] in source_codes]
+        estimated_count = sum(1 for event in source_events if event.get("effect_estimated"))
         schedule["estimated_sources"] = estimated_count
-        print(f"Effectifs estimés (majorant promotion parent) : {estimated_count} séances à reporter.")
+        schedule["estimated_all"] = sum(estimate_methods.values())
+        schedule["estimate_methods"] = dict(estimate_methods)
+        if args.effectifs_estimes:
+            detail = ", ".join(f"{method} : {count}" for method, count in estimate_methods.items()) or "aucune"
+            print(f"Effectifs estimés : {schedule['estimated_all']} séances localisées ({detail}) ; {estimated_count} dans les amphis LET à reporter.")
         schedule["missing_effect_source"] = sum(event["effect"] is None for event in source_events)
         schedule["unrecognized_source_promotions"] = sorted(
             {diploma for event in source_events for diploma in event["diplomas"] if diploma not in promotion_names},
@@ -3473,7 +3524,7 @@ def main(argv: list[str] | None = None) -> int:
         for key, result in scenarios.items():
             reallocs[key] = simulate_global_reallocation(result["events"], rooms, pool, ssh_pau_names, active_dates)
         realloc = reallocs["Référence"]
-        series_headers = ["room", "code", "building", "kind", "capacity", "max_effect", "mean_effect", "weekday", "start", "end", "subject", "type", "diplomas", "sessions", "hours", "target", "target_code", "target_capacity", "target_building", "target_kind", "freed_hours", "status"]
+        series_headers = ["estimated", "room", "code", "building", "kind", "capacity", "max_effect", "mean_effect", "weekday", "start", "end", "subject", "type", "diplomas", "sessions", "hours", "target", "target_code", "target_capacity", "target_building", "target_kind", "freed_hours", "status"]
         session_headers = list(realloc["sessions"][0]) if realloc["sessions"] else ["ID_SEANCE"]
         room_headers = ["code", "room", "building", "kind", "capacity", "hours_before", "rate_before", "hours_after", "rate_after", "fill_before", "fill_after"]
         over_headers = ["DATE", "LOCAL", "BATIMENT", "CAPACITE", "EFFECTIF", "DEPASSEMENT", "TYPE", "LIBELLE_MAT", "NOM_DIP", "EXAMEN"]

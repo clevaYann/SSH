@@ -285,3 +285,12 @@ Fichiers : `19_reaffectation_globale.html` (page), `19_reaffectation_avant_apres
 ### 9.4 Infobulles
 
 Dans le dashboard, passer la souris sur le libellé d'un indicateur (titre de colonne, chiffre clé, titre de section, bouton de période) affiche une explication. Les textes sont dans `INDICATOR_TIPS` du script ; pour en ajouter un, ajoutez un couple (motif, explication).
+
+### 9.5 Retrouver les effectifs manquants (option `--effectifs-estimes`)
+
+Les séances sans `EFFCALCU` ne reçoivent jamais d'effectif « constaté ». Avec l'option, le script estime un **majorant** à partir des autres données du planning, dans cet ordre :
+1. **Même groupe** : plus grand effectif de ses autres séances. Contrôle sur 42 052 séances : supérieur ou égal à l'effectif réel dans 99 % des cas.
+2. **Groupes frères** (« <Promotion><sous-ensemble>… ») : plus grand effectif connu. 83 % des cas.
+3. **Promotion parente** dans `EXP_PROMOTION` : environ 96 % des cas.
+
+Les séances concernées sont marquées « estimé » partout (CSV, tableaux, dashboard), comptées à part, et leurs heures restent dans le besoin non résolu. Les estimations ne servent jamais à signaler un dépassement de capacité. Compter les étudiants d'`EXP_ETUDIANT` par promotion n'a pas été retenu : le comptage est inférieur à l'effectif réel dans la plupart des cas.

@@ -1,0 +1,21 @@
+﻿perimetre;classement;rang;salle;batiment;capacite;heures;taux
+annee;plus occupees;1;Salle de cours 107 (LET-00);LET;68;770.67;55.85
+annee;plus occupees;2;Salle de cours 11 (LET-00);LET;80;750.92;54.41
+annee;plus occupees;3;Salle de cours 121 (LET-00);LET;70;724.17;52.48
+annee;plus occupees;4;Amphi A_A400 (DEG-00);DEG;400;716.25;51.9
+annee;plus occupees;5;Salle de cours 23 (LET-01);LET;80;709.67;51.43
+annee;moins occupees;1;Salle de cours C_C01 (DEG-00);DEG;79;398.83;28.9
+annee;moins occupees;2;Salle de cours 10 (LET-00);LET;60;422.33;30.6
+annee;moins occupees;3;Amphi C_A120 (DEG-00);DEG;120;529.17;38.35
+annee;moins occupees;4;Amphi A_A600 (DEG-00);DEG;600;546.0;39.57
+annee;moins occupees;5;Amphi 2 (LET-00);LET;140;558.75;40.49
+examens;plus occupees;1;Salle de cours C_C03 (DEG-00);DEG;50;37.5;37.5
+examens;plus occupees;2;Amphi A_A150 (DEG-00);DEG;150;32.5;32.5
+examens;plus occupees;3;Salle de cours C_C19 (DEG-01);DEG;52;32.25;32.25
+examens;plus occupees;4;Amphi C_A120 (DEG-00);DEG;120;29.0;29.0
+examens;plus occupees;5;Salle de cours C_C18 (DEG-01);DEG;50;28.0;28.0
+examens;moins occupees;1;Salle de cours 31 (LET-02);LET;60;0.0;0.0
+examens;moins occupees;2;Salle de cours 14 (LET-00);LET;98;0.0;0.0
+examens;moins occupees;3;Salle de cours 11 (LET-00);LET;80;0.0;0.0
+examens;moins occupees;4;Amphi 2 (LET-00);LET;140;0.0;0.0
+examens;moins occupees;5;Amphi 3 (LET-02);LET;300;1.0;1.0
