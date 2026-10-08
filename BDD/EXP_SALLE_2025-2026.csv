@@ -1,0 +1,660 @@
+﻿CODE;Nom;CAPA
+;Aire de lancer Soues;0
+82969;AM. Ampère (DAL_R-00);0
+15752;Amphi (CNB-00);0
+18961;Amphi (IUT-00);0
+18427;Amphi (STAP-00);300
+27353;Amphi 1 (LET-00);150
+27354;Amphi 2 (LET-00);140
+27502;Amphi 3 (LET-02);300
+17104;Amphi 40 (EC3-00);91
+16026;Amphi 400 (EC9-01);374
+17105;Amphi 41 (EC3-00);91
+16036;Amphi A (EC9-02);130
+85316;Amphi A (SCI_R-00);216
+36279;Amphi A_A150 (DEG-00);150
+36276;Amphi A_A300 (DEG-00);300
+36274;Amphi A_A400 (DEG-00);400
+36275;Amphi A_A600 (DEG-00);600
+16035;Amphi B (EC9-02);130
+85297;Amphi B (SCI_R-00);220
+84869;Amphi C (SCI_R-00);192
+36290;Amphi C_A120 (DEG-00);120
+84870;Amphi D (SCI_R-00);192
+13842;Amphi E (PAL-00);75
+33455;Amphi Elsa Serfass (BA1-00);80
+13841;Amphi F (PAL-00);75
+17228;Amphi G (DUB-00);140
+17229;Amphi H (DUB-00);140
+17014;Amphi Sainte Claire (B45-00);0
+24832;AMPHI STID (STI-00);165
+;Amphis MdM;0
+86007;Atelier 34 (IPR1-00);0
+86035;Atelier Géophysique 021a (IPR1-00);0
+73560;Auditorium (EC6-02);96
+;Bois du commandeur;0
+84961;Box optique B120 (SCI_R-01);2
+84955;Box optique B122 a (SCI_R-01);0
+85230;Box optique B122 b (SCI_R-01);0
+84959;Box optique B122 c (SCI_R-01);0
+85333;Box optique B122 d (SCI_R-01);0
+84960;Box optique B122 e (SCI_R-01);0
+85354;Box optique B122 f (SCI_R-01);0
+84958;Box optique B122 g (SCI_R-01);0
+84956;Box optique B122 h (SCI_R-01);0
+84954;Box optique B122 i (SCI_R-01);0
+85291;Box optique B129 (SCI_R-01);12
+;C002 BAT B RDC BX Bastide;0
+27283;Cartothèque 222bis (LET-01);24
+;Centrifugeuse;0
+82970;D. Diderot (DAL_R-00);0
+16994;Espace de travail informel Clarisse (BU-01);0
+85966;Espace informel 303 (B45-03);0
+27242;Espace libre accès 231 (LET-01);0
+79934;Espace visio I-152 (ISA-01);0
+79933;Espace visio I-153 (ISA-01);0
+38702;Formation U_23 (CAN-00);0
+17459;Gymnase (HUS-00);0
+;Gymnase Floride;0
+25138;Hall chaudière 1 (GTE-00);0
+25133;Hall chaudière 2 essais moteurs (GTE-00);0
+25140;Hall mécanique 1 (GTE-00);0
+69324;Hall mécanique 2 (GTE-00);0
+25103;Hall thermique 1 (GTE-00);0
+69320;Hall thermique 2 (GTE-00);0
+69321;Hall thermique 3 (GTE-00);0
+69322;Hall thermique 4 (GTE-00);0
+69323;Hall thermique 5 (GTE-00);0
+16351;Hall TP Bois (HTM-00);0
+17515;Hall TP Composites (SGM-00);0
+16352;Hall TP métaux (HTM-00);0
+78408;I-005 Buena vista (ISA-00);100
+78413;I-006 Kompong Speu (ISA-00);120
+78415;I-007 Nguéckock (ISA-00);120
+17510;Info TP (SGM-00);0
+;INSPE AN;0
+;INSPE EPS;0
+;INSPE ES;0
+;INSPE HG;0
+;INSPE LE;0
+;INSPE MA;0
+;INSPE Pau;0
+;INSPE PC;0
+72510;LAB_ Data Center Halle THD;0
+16359;LAB_ Préparations chaudes;0
+16357;LAB_ Préparations froides;0
+27512;Labo de Langues 312 (LET-02);15
+27521;Labo de Langues 316 (LET-02);20
+24931;Labo langues STID (STI-01);0
+18957;Labo Mécanique 02 (IUT-00);0
+19036;Laboratoire Automatique 135 (IUT-01);0
+19033;Laboratoire Electronique 136 (IUT-01);0
+19035;Laboratoire Electrotechnique 134 (IUT-01);0
+33328;Laboratoire salle analyse 108 (BA1-01);24
+18966;Laboratoire Thermique Fluide 04 (IUT-00);0
+33334;Laboratoire TP biologie 101 (BA1-01);20
+33332;Laboratoire TP biologie 103 (BA1-01);16
+33335;Laboratoire TP chimie 104 (BA1-01);20
+33337;Laboratoire TP chimie 106 (BA1-01);20
+;Maison de la santé;0
+;Maison des arts martiaux;0
+51530;Mur d'escalade (HUS-00);0
+69330;Parquet (HUS-00);0
+;Piscine Boyrie;0
+;Plaine des sports Camescasse;0
+77752;Plateau d'examen H. Darcy (DAL_R-02);0
+72515;Réseaux optiques Halle THD (GTR-00);0
+72508;Réseaux sans fils Halle THD (GTR-01);0
+25656;S_003 Amphi (IPM-00);0
+18422;Salle 09 (STAP-00);0
+13836;Salle 1 (PAL-00);46
+13879;Salle 10 (PAL-01);46
+13880;Salle 11 (PAL-01);46
+25789;Salle 112 (IPM-01);0
+25884;Salle 114 (IPM-01);0
+13881;Salle 12 (PAL-01);46
+13882;Salle 13 (PAL-01);46
+13886;Salle 14 (PAL-01);23
+13885;Salle 15 (PAL-01);24
+13883;Salle 16 (PAL-01);40
+13878;Salle 17 (PAL-01);46
+13877;Salle 18 (PAL-01);46
+13876;Salle 19 (PAL-01);46
+13837;Salle 2 (PAL-00);46
+17232;Salle 20 (DUB-00);48
+17234;Salle 21 (DUB-00);48
+17233;Salle 22 (DUB-00);48
+17231;Salle 23 (DUB-00);48
+17227;Salle 24 (DUB-00);46
+17240;Salle 25 (DUB-00);42
+17239;Salle 25bis (DUB-00);42
+17235;Salle 27 (DUB-00);30
+13838;Salle 3 (PAL-00);46
+17164;Salle 34 (DUB-01);32
+17160;Salle 35 (DUB-01);40
+13840;Salle 4 (PAL-00);46
+13835;Salle 5 (PAL-00);46
+13833;Salle 6 (PAL-00);46
+13839;Salle 7 (PAL-00);46
+13834;Salle 8 (PAL-00);46
+16350;Salle 9 TP Atelier (HTM-00);0
+;Salle Askida Paris;0
+;Salle BTS Cassin;0
+;Salle C07 Saint-Cricq;0
+;Salle C08 Saint-Cricq;0
+;Salle C10 Saint-Cricq;0
+85015;Salle cartographie B336 (SCI_R-03);20
+;Salle CIRA Saint-Cricq;0
+;Salle CIRA Saint-Cricq 2;0
+79776;Salle d'autonomie I-141 (ISA-01);0
+83662;Salle d'étude des alternants D_D20 (DEG-00);0
+84001;Salle de  travail 2 (DAL_R-00);0
+85969;Salle de captation A309 (B45-03);0
+33458;Salle de Cours 003 (BA1-00);50
+33460;Salle de cours 004 (BA1-00);60
+33459;Salle de cours 005 (BA1-00);50
+33446;Salle de cours 007 (BA1-00);19
+33457;Salle de cours 008 (BA1-00);30
+33456;Salle de cours 009 (BA1-00);36
+18420;Salle de cours 01 (STAP-00);41
+18418;Salle de cours 02 (STAP-00);41
+18421;Salle de cours 03 (STAP-00);51
+18414;Salle de cours 04 (STAP-00);51
+45520;Salle de cours 05 (STAP-00);37
+45522;Salle de cours 06 (STAP-00);41
+82980;Salle de cours 1 L. Prandtl (DAL_R-02);0
+27320;Salle de cours 10 (LET-00);60
+27328;Salle de cours 101 (LET-00);32
+27306;Salle de cours 105 (LET-00);48
+27308;Salle de cours 107 (LET-00);68
+27288;Salle de cours 108 (LET-00);30
+33327;Salle de cours 109 (BA1-01);19
+27289;Salle de cours 109 (LET-00);40
+27324;Salle de cours 11 (LET-00);80
+19018;Salle de cours 110 (IUT-01);0
+79980;Salle de cours 110 (LET-00);48
+27303;Salle de cours 113 (LET-00);32
+27309;Salle de cours 114 (LET-00);48
+27321;Salle de cours 12 (LET-00);60
+27333;Salle de cours 120 (LET-00);62
+27332;Salle de cours 121 (LET-00);70
+16952;Salle de cours 123 (B2-01);24
+16955;Salle de cours 124 (B2-01);20
+27337;Salle de cours 124 (LET-00);46
+16950;Salle de cours 125 (B2-01);24
+16947;Salle de cours 127 (B2-01);64
+16958;Salle de cours 129 (B2-01);70
+27322;Salle de cours 13 (LET-00);70
+16957;Salle de cours 131 (B2-01);70
+16959;Salle de cours 133 (B2-01);36
+27338;Salle de cours 133 (LET-00);44
+27341;Salle de cours 134 (LET-00);48
+16954;Salle de cours 135 (B2-01);24
+27336;Salle de cours 135 (LET-00);48
+16953;Salle de cours 137 (B2-01);30
+27323;Salle de cours 14 (LET-00);98
+17122;Salle de Cours 140 (EC3-01);40
+17124;Salle de cours 142 (EC3-01);32
+17123;Salle de cours 144 (EC3-01);27
+15996;Salle de cours 162 (B3-01);36
+15991;Salle de cours 163 (B3-01);56
+15992;Salle de cours 164 (B3-01);40
+15993;Salle de cours 165 (B3-01);56
+15984;Salle de cours 166 (B3-01);30
+15986;Salle de cours 167 (B3-01);24
+15987;Salle de cours 168 (B3-01);24
+82981;Salle de cours 2 W. Gibbs (DAL_R-02);0
+27252;Salle de cours 20 (LET-01);45
+33392;Salle de cours 201 (BA1-02);24
+27270;Salle de cours 203 (LET-01);18
+27267;Salle de cours 204 (LET-01);20
+16920;Salle de cours 21 (B2-00);30
+27247;Salle de cours 21 (LET-01);28
+27261;Salle de cours 212 (LET-01);44
+27257;Salle de cours 217 (LET-01);24
+16926;Salle de cours 22 (B2-00);38
+27244;Salle de cours 22 (LET-01);32
+27254;Salle de cours 220 (LET-01);60
+27284;Salle de cours 223 (LET-01);40
+27285;Salle de cours 229 (LET-01);40
+27248;Salle de cours 23 (LET-01);80
+69318;Salle de cours 234 (LET-01);45
+69319;Salle de cours 234bis (LET-01);20
+16927;Salle de cours 24 (B2-00);38
+73530;Salle de cours 240 (EC3-02);34
+73529;Salle de cours 242 (EC3-02);32
+73528;Salle de cours 244 (EC3-02);40
+16925;Salle de cours 25 (B2-00);30
+16924;Salle de cours 27 (B2-00);30
+82977;Salle de cours 3 M. Faraday (DAL_R-02);0
+27513;Salle de cours 30 (LET-02);60
+27528;Salle de cours 301 (LET-02);70
+16671;Salle de cours 304 (BA2-00);60
+79642;Salle de cours 307 (LET-02);48
+27515;Salle de cours 31 (LET-02);60
+27514;Salle de cours 32 (LET-02);80
+16729;Salle de cours 401 (BA2-01);32
+16728;Salle de cours 401bis (BA2-01);24
+16727;Salle de cours 402 (BA2-01);30
+16738;Salle de cours 405 (BA2-01);36
+16739;Salle de cours 406 (BA2-01);38
+16726;Salle de cours 407 (BA2-01);32
+16725;Salle de cours 407bis (BA2-01);32
+16618;Salle de cours 501 (BA2-02);20
+16616;Salle de cours 504 (BA2-02);24
+16629;Salle de cours 508 (BA2-02);32
+16630;Salle de cours 509 (BA2-02);55
+16621;Salle de cours 510 (BA2-02);20
+17480;Salle de cours 7 (HUS-01);0
+17008;Salle de cours A007 (B45-00);0
+17079;Salle de cours A211 (B45-02);0
+17085;Salle de cours A212 (B45-02);0
+17083;Salle de cours A213 (B45-02);0
+36289;Salle de cours B_B1 (DEG-00);100
+36271;Salle de cours B_B2 (DEG-00);76
+36420;Salle de cours B_B206 (DEG-02);25
+36421;Salle de cours B_B207 (DEG-02);25
+36422;Salle de cours B_B208 (DEG-02);25
+36425;Salle de cours B_B211 (DEG-02);30
+36427;Salle de cours B_B213 (DEG-02);45
+36272;Salle de cours B_B3 (DEG-00);40
+36268;Salle de cours B_B4 (DEG-00);40
+36269;Salle de cours B_B5 (DEG-00);36
+36270;Salle de cours B_B6 (DEG-00);34
+36273;Salle de cours B_B7 (DEG-00);34
+36277;Salle de cours B_B8 (DEG-00);28
+36291;Salle de cours C_C01 (DEG-00);79
+36287;Salle de cours C_C03 (DEG-00);50
+36292;Salle de cours C_C04 (DEG-00);50
+36553;Salle de cours C_C11 (DEG-01);40
+36554;Salle de cours C_C12 (DEG-01);34
+36555;Salle de cours C_C13 (DEG-01);40
+36556;Salle de cours C_C14 (DEG-01);40
+36557;Salle de cours C_C15 (DEG-01);40
+36558;Salle de cours C_C16 (DEG-01);38
+36559;Salle de cours C_C17 (DEG-01);40
+36560;Salle de cours C_C18 (DEG-01);50
+36561;Salle de cours C_C19 (DEG-01);52
+82978;Salle de cours D. Bernoulli (DAL_R-02);0
+25131;Salle de cours GTE (GTE-00);0
+82967;Salle de cours I. Langmuir (DAL_R-00);0
+27296;Salle de cours IEFE 127 (LET-00);26
+27298;Salle de cours IEFE 128 (LET-00);26
+27295;Salle de cours IEFE 131 (LET-00);35
+27339;Salle de cours IEFE 132 (LET-00);30
+82971;Salle de cours JLM. Poiseuille (DAL_R-01);0
+82975;Salle de cours JP. Joule (DAL_R-01);0
+82979;Salle de cours O. Reynolds (DAL_R-02);0
+82974;Salle de cours R. Clausius (DAL_R-01);0
+82968;Salle de cours S. Arrhenius (DAL_R-00);0
+82976;Salle de cours S. Carnot (DAL_R-01);0
+33447;Salle de cours TBI 006 (BA1-00);36
+69393;Salle de cours Télésite  8 (TEL-00);0
+69395;Salle de cours Télésite 10 (TEL-00);0
+69394;Salle de cours Télésite 9 (TEL-00);0
+36288;Salle de cours/informatique C_C02 (DEG-00);30
+17460;Salle de danse et arts martiaux DOJO (HUS-00);0
+;Salle de danse Floride;0
+78611;Salle de langues I-201 (ISA-02);18
+78618;Salle de langues I-202 (ISA-02);18
+84935;Salle de préparation B146 (SCI_R-01);0
+18912;Salle de Recherche 223 (IUT-02);0
+16417;Salle de réunion (BDL-00);0
+14686;Salle de Réunion (IBE-00);0
+18413;Salle de réunion (STAP-00);0
+85489;Salle de réunion 1 (IPR2-00);0
+17548;Salle de réunion 1 (SGM-01);0
+19048;Salle de Réunion 101 (IUT-01);0
+16830;Salle de réunion 110 (B1-01);15
+33329;Salle de réunion 110C (BA1-01);8
+86062;Salle de réunion 139 (IPR1-01);0
+16992;Salle de Réunion 14 (BU-01);10
+86048;Salle de réunion 145 (IPR1-01);0
+85615;Salle de réunion 146 (IPR2-01);0
+85616;Salle de réunion 147 (IPR2-01);0
+25203;Salle de réunion 188 (EC6-01);8
+86100;Salle de réunion 211 (IPR1-02);0
+18899;Salle de Réunion 222 (IUT-02);0
+85994;Salle de réunion 39 (IPR1-00);0
+85499;Salle de réunion 42 (IPR2-00);0
+85500;Salle de réunion 43 (IPR2-00);0
+17044;Salle de réunion A125 (B45-01);0
+36547;Salle de réunion B_B122 (DEG-01);0
+85200;Salle de réunion B119 (SCI_R-01);0
+84908;Salle de réunion B143 (SCI_R-01);0
+85059;Salle de réunion B200 (SCI_R-02);0
+85376;Salle de réunion B221 (SCI_R-02);0
+85233;Salle de réunion B258 (SCI_R-02);0
+85261;Salle de réunion B321 (SCI_R-03);0
+85348;Salle de réunion B323 (SCI_R-03);0
+38737;Salle de réunion C_SR02 (CAN-01);0
+15883;Salle de réunion C103 (CNC-01);0
+85602;Salle de réunion CHLOE/OPERA 104 (IPR2-01);0
+36411;Salle de réunion D_D03 (DEG-00);0
+36235;Salle de réunion D_D04 (DEG-00);16
+83664;Salle de réunion d'Alembert (DAL_R-00);0
+36286;Salle de réunion Direction C_SR1 (DEG-00);10
+76295;Salle de réunion Ferry (FER-00);0
+78601;Salle de réunion I-170 (ISA-01);10
+78602;Salle de réunion I-171 (ISA-01);10
+78614;Salle de réunion I-269 (ISA-02);20
+36444;Salle de réunion IAE CREG D_D210 (DEG-02);8
+15811;Salle de réunion JARA B212 (CNB-02);0
+17009;Salle de Réunion Larrun (B45-00);0
+19309;Salle de réunion Lavoisier (LAV-01);0
+16666;Salle de réunion Ptérocaryas (BA2-00);8
+25704;Salle de Réunion S_001 (IPM-00);40
+25706;Salle de Réunion S_007 (IPM-00);0
+25885;Salle de réunion S_108 (IPM-01);0
+25927;Salle de Réunion S_208 (IPM-02);0
+;Salle de sport MDE;0
+19008;Salle de TD 129 (IUT-01);0
+19038;Salle de TD 139 (IUT-01);0
+19032;Salle de TD 140 (IUT-01);0
+15782;Salle de TD B101 (CNB-01);0
+15784;Salle de TD B102 (CNB-01);0
+15786;Salle de TD B103 (CNB-01);0
+15785;Salle de TD B104 (CNB-01);0
+15783;Salle de TD B108 (CNB-01);0
+15781;Salle de TD B110 (CNB-01);0
+15809;Salle de TD B203 (CNB-02);0
+15806;Salle de TD B204 (CNB-02);0
+15807;Salle de TD B205 (CNB-02);0
+15810;Salle de TD B208 (CNB-02);0
+15835;Salle de TD B303 (CNB-03);0
+15842;Salle de TD B304 (CNB-03);0
+15840;Salle de TD B308 (CNB-03);0
+;Salle de TD BX Bastide A104;0
+;Salle de TD BX Bastide A301;0
+;Salle de TD BX Bastide B002;0
+;Salle de TD BX Bastide B305;0
+;Salle de TD BX Bastide B308;0
+;Salle de TD BX Bastide B413;0
+;Salle de TD BX Bastide B416;0
+15805;Salle de TP Informatique B201 (CNB-02);0
+15808;Salle de TP Informatique B202 (CNB-02);0
+15834;Salle de TP Informatique B301 (CNB-03);0
+15838;Salle de TP Informatique B302 (CNB-03);0
+15918;Salle de travail (CNA-00);0
+84003;Salle de travail 1 (DAL_R-00);0
+84099;Salle de travail 1 (DAL_R-02);0
+84098;Salle de travail 2 (DAL_R-02);0
+73558;Salle de travail 248 (EC6-02);0
+73556;Salle de travail 249 (EC6-02);0
+84891;Salle de travail A005 (SCI_R-00);0
+85955;Salle de travail A306 (B45-03);0
+85970;Salle de travail A311 (B45-03);0
+27413;Salle de travail des étudiants 225 (LET-01);0
+85096;Salle de travail étudiant B233 (SCI_R-02);0
+85270;Salle de travail étudiant B235 (SCI_R-02);0
+85095;Salle de travail étudiant B237 (SCI_R-02);0
+24916;Salle de travail ST 1A (STI-01);0
+27525;Salle des doctorants 319 (LET-02);0
+36228;Salle des séminaires D_SEM (DEG-00);0
+36232;Salle des Thèses D_D14 (DEG-00);0
+85021;Salle difract B328 (SCI_R-03);0
+27315;Salle DST A04 (LET-00);0
+49972;Salle du Conseil (EC3-02);30
+84877;Salle du conseil A007 (SCI_R-00);0
+27281;Salle du conseil B11 (LET-01);20
+36415;Salle du Conseil D_D12 (DEG-00);0
+78597;Salle du conseil I-101 (ISA-01);40
+16928;Salle FAB LAB Actions Internationales (B2-00);60
+78610;Salle Fablab I-236 (ISA-02);20
+27406;Salle FTLV 230 (LET-01);48
+;Salle G43 Lycée Barthou;0
+36278;Salle GREEN A_A01 (DEG-00);25
+25120;Salle GTE TD1 (GTE-00);0
+25118;Salle GTE TD2 (GTE-00);0
+25123;Salle GTE TP1 (GTE-00);0
+25128;Salle GTE TP2 (GTE-00);0
+25127;Salle GTE TP3 (GTE-00);0
+81132;Salle immersive & UNITA 305 (LET-02);16
+83663;Salle immersive D_D20bis (DEG-00);12
+77748;Salle info 1 A. Fick (DAL_R-01);0
+77749;Salle info 2 I. Newton (DAL_R-01);0
+17238;Salle Info 26 (DUB-00);24
+17236;Salle Info 28 (DUB-00);12
+17230;Salle Info 29 (DUB-00);20
+77747;Salle info 3 JB. Fourier (DAL_R-01);0
+17162;Salle Info 30 (DUB-01);12
+17161;Salle Info 31 (DUB-01);12
+17163;Salle Info 32 (DUB-01);12
+17165;Salle Info 33 (DUB-01);12
+77750;Salle info 4 G.Ohm (DAL_R-01);0
+82972;Salle info 5 L. Kelvin (DAL_R-01);0
+82973;Salle info 6 A. Volta (DAL_R-01);0
+85115;Salle info B206 (SCI_R-02);14
+85114;Salle info B208 (SCI_R-02);16
+85101;Salle info B214 (SCI_R-02);16
+85216;Salle Info B215 (SCI_R-02);10
+85347;Salle info B216 (SCI_R-02);16
+85306;Salle info B220 (SCI_R-02);12
+85256;Salle info B222 (SCI_R-02);12
+85094;Salle info B224 (SCI_R-02);18
+85100;Salle info B229-B231 (SCI_R-02);9
+85017;Salle info B331 (SCI_R-03);18
+85016;Salle info B333 (SCI_R-03);20
+;Salle info BX Bastide A302;0
+;Salle info BX Bastide A305;0
+;Salle info BX Bastide A307;0
+;Salle info BX Bastide B301;0
+;Salle info BX Bastide B413;0
+33390;Salle informatique - linus 203 (BA1-02);24
+33393;Salle informatique - MAC 206 (BA1-02);35
+18419;Salle Informatique (STAP-00);0
+36537;Salle informatique + baie B_B109 (DEG-01);0
+16948;Salle informatique 120 (B2-01);20
+16949;Salle informatique 122 (B2-01);20
+27266;Salle informatique 201 (LET-01);15
+27273;Salle informatique 202 (LET-01);20
+33394;Salle informatique 205 (BA1-02);30
+33386;Salle informatique 208 (BA1-02);24
+33388;Salle informatique 210-211 (BA1-02);36
+27271;Salle informatique 214 (LET-01);15
+27272;Salle informatique 215 (LET-01);20
+16674;Salle informatique 301 (BA2-00);30
+27510;Salle informatique 313 (LET-02);20
+27509;Salle informatique 314 (LET-02);19
+17037;Salle informatique A101 (B45-01);0
+17077;Salle informatique A201 (B45-02);0
+36531;Salle informatique B_ASPE (DEG-01);13
+36423;Salle informatique B_B209 (DEG-02);34
+36548;Salle informatique B_BARETOUS (DEG-01);9
+36551;Salle informatique B_OSSAU (DEG-01);17
+78619;Salle informatique I-206 (ISA-02);46
+78613;Salle informatique I-207 (ISA-02);44
+18063;Salle Informatique PC BIO (BIO-01);0
+;Salle Lycée Cantau;0
+85334;Salle méca B332 (SCI_R-03);0
+85098;Salle MEEF B218 (SCI_R-02);12
+85019;Salle microscopie B329 (SCI_R-03);0
+85345;Salle minéralogie B334 (SCI_R-03);16
+18936;Salle montage 016 (IUT-00);0
+18937;Salle montage 018 (IUT-00);0
+27300;Salle multimedia UTLA 137 (LET-00);42
+45521;Salle musculation (STAP-00);0
+73463;Salle n°18 (BTB-01);0
+73460;Salle n°19 (BTB-00);0
+85023;Salle prépa B325 (SCI_R-03);0
+18954;Salle projet 019 (IUT-00);0
+84944;Salle Projet B135 (SCI_R-01);20
+78385;Salle projet I-008 (ISA-00);57
+78603;Salle projet I-105 (ISA-01);71
+78604;Salle projet I-106 (ISA-01);74
+19012;Salle projet modulable 120 (IUT-01);0
+;Salle Projets;0
+33395;Salle Rapide MOOC 204 (BA1-02);0
+15968;Salle Recherche (B3-00);40
+19280;Salle rédaction TP (LAV-00);0
+17080;Salle SAE A210 (B45-02);0
+85968;Salle SAE A307 (B45-03);0
+85971;Salle SAE A313 (B45-03);0
+72528;Salle séminaire Bizanos (XPL-02);30
+72529;Salle séminaire Pau (XPL-02);30
+24856;Salle STID SC03 (STI-00);0
+24853;Salle STID SE01 (STI-00);0
+24855;Salle STID SE02 (STI-00);0
+24854;Salle STID SE03 (STI-00);0
+24848;Salle STID SE04 (STI-00);0
+24851;Salle STID SE05 (STI-00);0
+24850;Salle STID SE06 (STI-00);0
+24849;Salle STID SE07 (STI-00);0
+24924;Salle STID TC10 (STI-01);0
+19010;Salle TD 124 (IUT-01);0
+85943;Salle TD 125 (IUT-01);60
+19009;Salle TD 126 (IUT-01);0
+85942;Salle TD 127 (IUT-01);60
+19005;Salle TD 131 (IUT-01);0
+19037;Salle TD 138 (IUT-01);0
+17078;Salle TD A203 (B45-02);0
+17074;Salle TD A205 (B45-02);0
+17082;Salle TD A206 (B45-02);0
+17081;Salle TD A208 (B45-02);0
+17076;Salle TD A209 (B45-02);0
+85967;Salle TD A305 (B45-03);0
+17011;Salle TD Baïgura (B45-00);0
+78600;Salle TD I-102 (ISA-01);33
+78605;Salle TD I-103 (ISA-01);33
+78606;Salle TD I-104 (ISA-01);33
+78609;Salle TD I-203 (ISA-02);33
+78612;Salle TD I-204 (ISA-02);33
+78615;Salle TD I-205 (ISA-02);33
+18356;Salle TD Info (GTR-01);0
+17012;Salle TD Iparla (B45-00);0
+18062;Salle TD1 (BIO-01);0
+18061;Salle TD2 (BIO-01);0
+18064;Salle TD3 (BIO-01);0
+18354;Salle TD4 (GTR-01);0
+18353;Salle TD5 (GTR-01);0
+18352;Salle TD6 (GTR-01);0
+17546;Salle TD7 (SGM-01);0
+17547;Salle TD8 (SGM-01);0
+17199;Salle TP  Biol Végét 40 (DUB-02);20
+19279;Salle TP (LAV-00);0
+33444;Salle TP 011 (BA1-00);20
+18952;Salle TP 015 (IUT-00);0
+18953;Salle TP 017 (IUT-00);0
+17075;Salle TP A207 (B45-02);0
+85965;Salle TP A301 (B45-03);0
+78384;Salle TP béton 1 I-057 (ISA-00);20
+78382;Salle TP béton 2 I-058 (ISA-00);20
+78383;Salle TP béton 3 I-059 (ISA-00);20
+17202;Salle TP Bioch 43 (DUB-02);20
+17551;Salle TP CAO (SGM-01);0
+84938;Salle TP chimie B132 (SCI_R-01);0
+84933;Salle TP chimie B148 (SCI_R-01);0
+84932;Salle TP chimie B150 (SCI_R-01);0
+85372;Salle TP chimie B152 (SCI_R-01);0
+85332;Salle TP chimie B156 (SCI_R-01);0
+85080;Salle TP Chimie B234 (SCI_R-02);0
+85268;Salle TP Chimie B236 (SCI_R-02);0
+85292;Salle TP Chimie B244 (SCI_R-02);0
+85335;Salle TP Chimie B246 (SCI_R-02);0
+85069;Salle TP Chimie B248 (SCI_R-02);0
+85070;Salle TP Chimie B252 (SCI_R-02);0
+85149;Salle TP Chimie B342 (SCI_R-03);0
+85148;Salle TP Chimie B346 (SCI_R-03);0
+85279;Salle TP Chimie B348 (SCI_R-03);0
+85147;Salle TP Chimie B350 (SCI_R-03);0
+85144;Salle TP Chimie B352 (SCI_R-03);0
+85141;Salle TP Chimie B362 (SCI_R-03);0
+85140;Salle TP Chimie B366 (SCI_R-03);0
+85358;Salle TP Chimie B368 (SCI_R-03);0
+85137;Salle TP Chimie B370 (SCI_R-03);0
+17156;Salle TP Electronique 39 (DUB-01);18
+17159;Salle TP Electrotech 36 (DUB-01);0
+85206;Salle TP géochimie B330 (SCI_R-03);15
+25172;Salle TP GTE BE1 (GTE-01);0
+25171;Salle TP GTE BE2 (GTE-01);0
+17550;Salle TP informatique (SGM-01);0
+18949;Salle TP Informatique 021 (IUT-00);0
+18948;Salle TP Informatique 022 (IUT-00);0
+18950;Salle TP Informatique 023 (IUT-00);0
+18945;Salle TP Informatique 024 (IUT-00);0
+18951;Salle TP Informatique 025 (IUT-00);0
+18946;Salle TP Informatique 026 (IUT-00);0
+19025;Salle TP Informatique 141 (IUT-01);0
+19026;Salle TP Informatique 142 (IUT-01);0
+19023;Salle TP Informatique 143 (IUT-01);0
+16617;Salle TP informatique 503 (BA2-02);24
+17031;Salle TP informatique A105 (B45-01);0
+17157;Salle TP Informatique indus 37 (DUB-01);12
+17153;Salle TP Informatique indus 38 (DUB-01);12
+17503;Salle TP Meca. (SGM-00);0
+78416;Salle TP Mécanique I-052 (ISA-00);20
+17197;Salle TP Microbio 42 (DUB-02);20
+19006;Salle TP Multimédia 128 (IUT-01);0
+19007;Salle TP Multimédia 130 (IUT-01);0
+19004;Salle TP Multimédia 132 (IUT-01);0
+18325;Salle TP PC (micro-informatique) (GTR-00);0
+17200;Salle TP Physio animale 41 (DUB-02);20
+33454;Salle TP physique 012 (BA1-00);24
+85198;Salle TP Physique B116 (SCI_R-01);8
+84964;Salle TP Physique B118 (SCI_R-01);28
+84963;Salle TP Physique B127 (SCI_R-01);24
+84952;Salle TP Physique B133 (SCI_R-01);24
+78417;Salle TP Physique I-051 (ISA-00);20
+85259;Salle TP Physique MEEF B124 (SCI_R-01);24
+19290;Salle TP Pilotes industriels (LAV-00);0
+19278;Salle TP Recherche (LAV-00);0
+33450;Salle TP sciences de l'eau 014 (BA1-00);24
+24860;Salle TP STID SC01 (STI-00);0
+24861;Salle TP STID SC02 (STI-00);0
+85322;Salle TP sur roches B326 (SCI_R-03);15
+19291;Salle TP Techniques (LAV-00);0
+24919;Salle TP/TD STID SI11 (STI-01);0
+24920;Salle TP/TD STID SI12 (STI-01);0
+24915;Salle TP/TD STID SI13 (STI-01);0
+24922;Salle TP/TD STID SI14 (STI-01);0
+24923;Salle TP/TD STID SI15 (STI-01);0
+85296;Salle travail étudiant A011 (SCI_R-00);0
+17084;Salle visio 210 (B45-02);10
+79832;Salle visio I-234 (ISA-02);0
+79833;Salle visio I-235 (ISA-02);0
+;Salles campus de la NIVE;0
+;Salles extérieures - BPB;0
+;Salles info - BPB;0
+;Salles info - STEE Anglet;0
+;Salles info SGM - MdM;0
+;Salles informatiques département GIM;0
+;Salles spéciales;0
+;Salles TD - BPB;0
+;Salles TD - STEE Anglet;0
+;Salles TD département GIM;0
+;Salles TD département informatique;0
+;Salles TD gde capacité - STEE Anglet;0
+;Salles TD info RT - MdM;0
+;Salles TD MdM;0
+;Salles TP département informatique;0
+;Salles TP GB - MdM;0
+;Salles TP info RT - MdM;0
+;Salles TP Réseaux RT - MdM;0
+;Stade Trélut;0
+72518;Téléformation Halle THD (GTR-00);0
+;Théâtre Alizée - CENON;0
+;Théâtre des Chimères;0
+;Théâtre des Chimères 2;0
+76312;TK. Sherwood (FER-00);150
+;TP analyse sensorielle;0
+18244;TP Biochimie (BIO-00);0
+18242;TP Biologie (BIO-00);0
+18243;TP Chimie (BIO-00);0
+17514;TP Chimie Labo (SGM-00);0
+69388;TP Découpe numérique (SGM-00);0
+17508;TP Fonderie (SGM-00);0
+17505;TP Génie du bois Labo (SGM-00);0
+18230;TP Hall (BIO-00);0
+;TP Microbiologie 1;0
+;TP Microbiologie 2;0
+18231;TP Physique (BIO-00);0
+17549;TP Physique (SGM-01);0
+17509;TP Prototypage (SGM-00);0
+18329;TP Réseaux (GTR-00);0
+18328;TP Station 1 (GTR-00);0
+18333;TP Télécoms (GTR-00);0
+18334;TP Téléphonie (GTR-00);0
+17507;TP Tests méca. 2 (SGM-00);0
+17506;TP Tests méca. et plasturgie (SGM-00);0
+18327;TP Très Haut Débit THD (GTR-00);0
+;Usine des sports;0

@@ -19,6 +19,3 @@ temp/
 .cache/
 __pycache__/
 *.py[cod]
-
-# Local project data
-BDD/
