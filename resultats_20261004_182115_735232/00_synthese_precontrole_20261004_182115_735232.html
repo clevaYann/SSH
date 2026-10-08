@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Précontrôle occupation UPPA — 2026-10-04T18:21:15+02:00</title>
+<style>
+:root{color-scheme:light;--ink:#19252a;--muted:#52636b;--line:#d3dcdf;--paper:#f3f6f4;--white:#fff;--alert:#8e3029;--accent:#17675d}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 Georgia,serif}
+main{max-width:980px;margin:32px auto;padding:0 22px 48px}header{border-bottom:2px solid var(--ink);padding:18px 0 24px}
+.eyebrow{font:600 12px/1.4 monospace;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(27px,5vw,42px);line-height:1.1;margin:10px 0}
+header p,.meta{color:var(--muted)}section{padding:20px 0;border-bottom:1px solid var(--line)}h2{font-size:22px;margin:0 0 12px}
+.alert{border-left:5px solid var(--alert);padding:16px 18px;background:#fff0ec}.alert h2{color:var(--alert)}li{margin:5px 0}
+table{width:100%;border-collapse:collapse;background:var(--white);font:14px/1.45 system-ui,sans-serif}th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}th{background:#e7eeee}
+details{margin-top:10px}summary{cursor:pointer;color:var(--accent);font-family:system-ui,sans-serif}code{font-family:monospace;background:#e7eeee;padding:2px 4px}
+@media(max-width:600px){main{margin-top:14px;padding-inline:14px}}
+</style></head><body><main>
+<header><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Précontrôle des données</h1>
+<p>Créé le 2026-10-04T18:21:15+02:00 · Période demandée : non précisé → non précisé · Semaines exclues : aucune</p></header>
+<section class="alert"><h2>Calcul interrompu, aucun indicateur publié</h2>
+<p>Les données présentes ne permettent pas de reconstituer le calendrier ni d'identifier de façon fiable les locaux. Aucun taux, scénario ou résultat de faisabilité n'a été calculé.</p>
+<ul><li>En-têtes dupliqués : C:\Users\jbmouyabi\Documents\SSH\BDD\CC EXPORT MIASHS V2_2025_2026.csv</li></ul></section>
+<section><h2>Entrées nécessaires</h2><ul>
+<li>Un planning avec <code>PERIODE</code> et <code>CODE_SAL</code>, ou une spécification validée qui autorise explicitement une autre méthode d'occurrences et d'identification des salles.</li>
+<li>La convention exacte de rapprochement entre <code>NOM_DIP</code> du planning et <code>EFFCALCU</code> des exports de promotions, y compris les lignes/familles à agréger, ou un fichier d'effectifs manuels validé.</li>
+<li>Le calendrier pédagogique officiel (jours sans cours et périodes de fermeture) ou la liste à fournir avec <code>--exclure-semaines</code>. Les seuls jours fériés nationaux ne déterminent pas les vacances universitaires.</li>
+<li>Le contenu lisible et validé de la méthodologie et des consignes complémentaires. Le compte rendu DOCX fourni est vide.</li>
+</ul><p>Entrées CLI acceptées par ce précontrôle : <code>--dossier</code>, <code>--planning</code>, <code>--salles</code>, <code>--promotions</code>, <code>--debut</code>, <code>--fin</code>, <code>--exclure-semaines</code>. <code>--modele-effectifs</code> écrit les noms distincts de <code>NOM_DIP</code> pour saisie manuelle ; ces noms ne sont pas présumés être des groupes de présence.</p></section>
+<section><h2>Locaux</h2><p><strong>Fichier :</strong> EXP_SALLE_2025-2026.csv · 659 lignes · encodage détecté : utf-8-sig · séparateur : &#x27;;&#x27;</p><ul><li>659 lignes de données</li><li>CODE vide : 68</li><li>Lignes avec CODE répété au-delà de la première : 67</li><li>Capacités égales à zéro : 366</li></ul><details><summary>Valeurs vides par colonne</summary><table><thead><tr><th>Colonne</th><th>Vides</th></tr></thead><tbody><tr><td>CODE</td><td>10.32 %</td></tr><tr><td>Nom</td><td>0.00 %</td></tr><tr><td>CAPA</td><td>0.00 %</td></tr></tbody></table></details></section><section><h2>Effectifs de référence</h2><p><strong>Fichier :</strong> EXP_PROMOTION_2025-2026.csv · 12 981 lignes · encodage détecté : utf-8-sig · séparateur : &#x27;;&#x27;</p><ul><li>12 981 lignes de données</li><li>Lignes NOM_DIP répétées au-delà de la première : 6410</li></ul><details><summary>Valeurs vides par colonne</summary><table><thead><tr><th>Colonne</th><th>Vides</th></tr></thead><tbody><tr><td>NOM_DIP</td><td>0.00 %</td></tr><tr><td>UID_DIP</td><td>90.76 %</td></tr><tr><td>CODE_DIP</td><td>0.05 %</td></tr><tr><td>FAMILLE</td><td>0.00 %</td></tr><tr><td>EFFCALCU</td><td>0.00 %</td></tr></tbody></table></details></section>
+<footer><p>Cette page est un diagnostic de sources, pas le rapport d'occupation demandé. Elle ne contient aucune estimation.</p></footer>
+</main></body></html>
