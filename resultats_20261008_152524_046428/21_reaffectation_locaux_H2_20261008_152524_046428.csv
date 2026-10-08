@@ -1,0 +1,110 @@
+﻿code;room;building;kind;capacity;hours_before;rate_before;hours_after;rate_after;fill_before;fill_after
+36279;Amphi A_A150 (DEG-00);DEG;amphi;150;958.6;69.46;629.8;45.64;55.3;70.6
+36276;Amphi A_A300 (DEG-00);DEG;amphi;300;914.2;66.25;577.0;41.81;38.7;48.7
+36274;Amphi A_A400 (DEG-00);DEG;amphi;400;901.8;65.35;609.9;44.2;35.0;45.1
+36275;Amphi A_A600 (DEG-00);DEG;amphi;600;835.9;60.57;497.5;36.05;32.5;43.7
+36290;Amphi C_A120 (DEG-00);DEG;amphi;120;992.3;71.91;630.9;45.72;53.3;61.7
+36289;Salle de cours B_B1 (DEG-00);DEG;grande_salle;100;704.4;51.04;362.9;26.3;45.6;67.8
+36271;Salle de cours B_B2 (DEG-00);DEG;grande_salle;76;612.3;44.37;352.8;25.57;60.5;89.1
+36420;Salle de cours B_B206 (DEG-02);DEG;salle_cours;25;639.0;46.3;705.5;51.12;97.7;94.4
+36421;Salle de cours B_B207 (DEG-02);DEG;salle_cours;25;414.6;30.04;548.1;39.72;87.8;79.3
+36422;Salle de cours B_B208 (DEG-02);DEG;salle_cours;25;534.5;38.73;596.2;43.21;82.5;78.8
+36425;Salle de cours B_B211 (DEG-02);DEG;salle_cours;30;599.0;43.41;635.0;46.01;108.4;106.8
+36427;Salle de cours B_B213 (DEG-02);DEG;salle_cours;45;716.8;51.94;732.2;53.06;50.8;53.3
+36272;Salle de cours B_B3 (DEG-00);DEG;salle_cours;40;679.6;49.25;692.1;50.15;118.1;119.4
+36268;Salle de cours B_B4 (DEG-00);DEG;salle_cours;40;725.6;52.58;723.2;52.4;127.8;130.1
+36269;Salle de cours B_B5 (DEG-00);DEG;salle_cours;36;612.2;44.36;658.4;47.71;121.3;119.0
+36270;Salle de cours B_B6 (DEG-00);DEG;salle_cours;34;541.2;39.21;597.2;43.27;218.1;200.0
+36273;Salle de cours B_B7 (DEG-00);DEG;salle_cours;34;583.2;42.26;609.9;44.2;172.6;167.7
+36277;Salle de cours B_B8 (DEG-00);DEG;salle_cours;28;667.2;48.35;719.2;52.12;128.8;125.5
+36291;Salle de cours C_C01 (DEG-00);DEG;grande_salle;79;398.8;28.9;317.1;22.98;45.1;62.9
+36287;Salle de cours C_C03 (DEG-00);DEG;grande_salle;50;689.8;49.99;574.1;41.6;69.4;75.9
+36292;Salle de cours C_C04 (DEG-00);DEG;grande_salle;50;638.1;46.24;544.2;39.44;100.8;116.5
+36553;Salle de cours C_C11 (DEG-01);DEG;salle_cours;40;558.3;40.46;559.6;40.55;66.0;71.9
+36554;Salle de cours C_C12 (DEG-01);DEG;salle_cours;34;575.4;41.7;590.2;42.77;59.8;62.0
+36555;Salle de cours C_C13 (DEG-01);DEG;salle_cours;40;464.6;33.67;479.6;34.75;60.1;65.3
+36556;Salle de cours C_C14 (DEG-01);DEG;salle_cours;40;708.8;51.36;687.3;49.81;79.6;82.9
+36557;Salle de cours C_C15 (DEG-01);DEG;salle_cours;40;644.7;46.71;638.9;46.3;127.3;130.7
+36558;Salle de cours C_C16 (DEG-01);DEG;salle_cours;38;638.9;46.3;663.2;48.06;155.1;156.4
+36559;Salle de cours C_C17 (DEG-01);DEG;salle_cours;40;622.3;45.1;630.6;45.69;146.8;146.0
+36560;Salle de cours C_C18 (DEG-01);DEG;grande_salle;50;692.0;50.14;590.2;42.77;143.7;159.6
+36561;Salle de cours C_C19 (DEG-01);DEG;grande_salle;52;582.5;42.21;602.0;43.62;39.2;44.2
+36288;Salle de cours/informatique C_C02 (DEG-00);DEG;salle_cours;30;325.0;23.55;523.1;37.9;93.4;88.8
+17228;Amphi G (DUB-00);DUB;amphi;140;605.0;43.84;707.2;51.25;34.1;41.5
+17229;Amphi H (DUB-00);DUB;amphi;140;522.6;37.87;614.2;44.5;35.4;44.2
+17232;Salle 20 (DUB-00);DUB;autre;48;727.0;52.68;738.0;53.48;89.6;89.7
+17234;Salle 21 (DUB-00);DUB;autre;48;573.3;41.55;573.3;41.55;80.1;80.1
+17233;Salle 22 (DUB-00);DUB;autre;48;592.0;42.9;596.0;43.19;77.4;77.5
+17231;Salle 23 (DUB-00);DUB;autre;48;599.2;43.42;599.2;43.42;65.1;65.1
+17227;Salle 24 (DUB-00);DUB;autre;46;524.5;38.01;524.5;38.01;58.9;58.9
+17240;Salle 25 (DUB-00);DUB;autre;42;509.0;36.88;524.5;38.01;80.3;79.8
+17239;Salle 25bis (DUB-00);DUB;autre;42;501.6;36.35;528.6;38.3;64.1;66.3
+17235;Salle 27 (DUB-00);DUB;autre;30;447.8;32.45;505.8;36.65;64.7;69.1
+17164;Salle 34 (DUB-01);DUB;autre;32;499.0;36.16;535.0;38.77;47.9;51.9
+17160;Salle 35 (DUB-01);DUB;autre;40;425.7;30.85;495.7;35.92;55.8;61.2
+27320;Salle de cours 10 (LET-00);LET;grande_salle;60;422.3;30.6;382.6;27.72;54.7;68.8
+27328;Salle de cours 101 (LET-00);LET;salle_cours;32;607.1;43.99;626.1;45.37;73.4;74.5
+27306;Salle de cours 105 (LET-00);LET;salle_cours;48;803.1;58.19;770.6;55.84;53.8;56.2
+27308;Salle de cours 107 (LET-00);LET;grande_salle;68;770.7;55.85;606.8;43.97;37.3;41.9
+27288;Salle de cours 108 (LET-00);LET;salle_cours;30;603.6;43.74;648.6;47.0;83.8;84.8
+27289;Salle de cours 109 (LET-00);LET;salle_cours;40;734.7;53.24;736.0;53.33;70.0;71.8
+27324;Salle de cours 11 (LET-00);LET;grande_salle;80;750.9;54.41;612.1;44.35;71.7;80.9
+79980;Salle de cours 110 (LET-00);LET;salle_cours;48;412.6;29.9;322.1;23.34;51.3;67.1
+27303;Salle de cours 113 (LET-00);LET;salle_cours;32;551.2;39.95;632.2;45.82;55.5;61.1
+27309;Salle de cours 114 (LET-00);LET;salle_cours;48;717.8;52.01;707.8;51.29;54.5;55.3
+27321;Salle de cours 12 (LET-00);LET;grande_salle;60;638.2;46.25;559.2;40.53;60.9;69.2
+27333;Salle de cours 120 (LET-00);LET;grande_salle;62;678.8;49.18;554.2;40.16;65.6;75.4
+27332;Salle de cours 121 (LET-00);LET;grande_salle;70;724.2;52.48;690.7;50.05;55.1;56.9
+27337;Salle de cours 124 (LET-00);LET;salle_cours;46;773.7;56.06;756.7;54.83;58.8;60.2
+27322;Salle de cours 13 (LET-00);LET;grande_salle;70;698.7;50.63;512.2;37.11;46.6;52.7
+27338;Salle de cours 133 (LET-00);LET;salle_cours;44;750.8;54.41;766.8;55.57;60.4;64.6
+27341;Salle de cours 134 (LET-00);LET;salle_cours;48;737.3;53.43;744.8;53.97;52.3;53.2
+27336;Salle de cours 135 (LET-00);LET;salle_cours;48;417.6;30.26;379.1;27.47;47.8;56.6
+27323;Salle de cours 14 (LET-00);LET;grande_salle;98;614.3;44.52;436.8;31.65;44.0;61.2
+27252;Salle de cours 20 (LET-01);LET;salle_cours;45;636.8;46.14;606.2;43.93;47.5;52.4
+27270;Salle de cours 203 (LET-01);LET;salle_cours;18;420.2;30.45;800.2;57.99;100.7;78.8
+27267;Salle de cours 204 (LET-01);LET;salle_cours;20;582.0;42.17;773.0;56.01;70.8;69.1
+27247;Salle de cours 21 (LET-01);LET;salle_cours;28;702.1;50.88;729.0;52.83;78.1;78.1
+27261;Salle de cours 212 (LET-01);LET;salle_cours;44;668.2;48.42;726.2;52.62;65.3;69.2
+27257;Salle de cours 217 (LET-01);LET;salle_cours;24;693.6;50.26;781.1;56.6;61.2;62.4
+27244;Salle de cours 22 (LET-01);LET;salle_cours;32;628.2;45.52;658.7;47.73;92.4;92.5
+27254;Salle de cours 220 (LET-01);LET;grande_salle;60;667.2;48.35;632.4;45.83;79.3;85.7
+27284;Salle de cours 223 (LET-01);LET;salle_cours;40;730.7;52.95;787.7;57.08;56.9;60.7
+27285;Salle de cours 229 (LET-01);LET;salle_cours;40;687.9;49.85;729.2;52.84;70.3;71.9
+27248;Salle de cours 23 (LET-01);LET;grande_salle;80;709.7;51.43;585.0;42.39;63.4;72.5
+69318;Salle de cours 234 (LET-01);LET;salle_cours;45;687.2;49.8;679.8;49.26;150.4;152.7
+69319;Salle de cours 234bis (LET-01);LET;salle_cours;20;600.6;43.52;784.3;56.84;71.8;67.4
+27513;Salle de cours 30 (LET-02);LET;grande_salle;60;680.4;49.31;648.9;47.02;61.7;62.8
+27528;Salle de cours 301 (LET-02);LET;grande_salle;70;643.5;46.63;536.0;38.84;48.0;53.3
+79642;Salle de cours 307 (LET-02);LET;salle_cours;48;696.1;50.44;721.6;52.29;72.5;72.6
+27515;Salle de cours 31 (LET-02);LET;grande_salle;60;615.6;44.61;597.1;43.27;59.2;63.4
+27514;Salle de cours 32 (LET-02);LET;grande_salle;80;644.4;46.7;511.8;37.08;49.2;56.6
+27296;Salle de cours IEFE 127 (LET-00);LET;salle_cours;26;396.0;28.7;649.5;47.07;25.0;46.9
+27298;Salle de cours IEFE 128 (LET-00);LET;salle_cours;26;470.5;34.09;601.0;43.55;45.9;56.3
+27295;Salle de cours IEFE 131 (LET-00);LET;salle_cours;35;578.5;41.92;630.0;45.65;31.4;39.4
+27339;Salle de cours IEFE 132 (LET-00);LET;salle_cours;30;571.5;41.41;682.0;49.42;22.6;42.2
+13842;Amphi E (PAL-00);PAL;amphi;75;621.8;45.05;650.2;47.12;50.3;53.1
+13841;Amphi F (PAL-00);PAL;amphi;75;503.8;36.51;577.3;41.84;54.5;60.3
+13836;Salle 1 (PAL-00);PAL;autre;46;705.6;51.13;711.1;51.53;61.2;61.4
+13879;Salle 10 (PAL-01);PAL;autre;46;724.5;52.5;724.5;52.5;56.5;56.5
+13880;Salle 11 (PAL-01);PAL;autre;46;623.6;45.19;623.6;45.19;57.4;57.4
+13881;Salle 12 (PAL-01);PAL;autre;46;620.2;44.94;624.7;45.27;65.4;65.6
+13882;Salle 13 (PAL-01);PAL;autre;46;489.8;35.5;497.3;36.04;62.9;63.2
+13886;Salle 14 (PAL-01);PAL;autre;23;427.3;30.97;650.3;47.13;120.0;99.3
+13885;Salle 15 (PAL-01);PAL;autre;24;334.6;24.25;717.8;52.02;40.8;58.4
+13883;Salle 16 (PAL-01);PAL;autre;40;429.8;31.15;528.8;38.32;98.4;93.4
+13878;Salle 17 (PAL-01);PAL;autre;46;447.3;32.42;487.8;35.35;88.8;89.1
+13877;Salle 18 (PAL-01);PAL;autre;46;463.9;33.62;504.9;36.59;117.1;113.4
+13876;Salle 19 (PAL-01);PAL;autre;46;428.4;31.04;487.9;35.36;61.9;63.1
+13837;Salle 2 (PAL-00);PAL;autre;46;562.1;40.73;575.6;41.71;83.7;84.4
+13838;Salle 3 (PAL-00);PAL;autre;46;619.4;44.89;628.4;45.54;69.1;69.3
+13840;Salle 4 (PAL-00);PAL;autre;46;648.8;47.02;651.8;47.23;66.2;66.5
+13835;Salle 5 (PAL-00);PAL;autre;46;612.9;44.41;622.4;45.1;80.0;80.2
+13833;Salle 6 (PAL-00);PAL;autre;46;696.7;50.48;697.2;50.52;62.2;62.5
+13839;Salle 7 (PAL-00);PAL;autre;46;754.7;54.69;757.7;54.9;62.3;62.6
+13834;Salle 8 (PAL-00);PAL;autre;46;777.8;56.36;789.8;57.23;58.0;58.5
+85316;Amphi A (SCI_R-00);SCI_R;amphi;216;522.1;37.83;552.8;40.05;56.0;58.4
+85297;Amphi B (SCI_R-00);SCI_R;amphi;220;489.0;35.43;548.0;39.71;50.6;54.8
+84869;Amphi C (SCI_R-00);SCI_R;amphi;192;534.0;38.7;565.5;40.98;52.9;54.3
+84870;Amphi D (SCI_R-00);SCI_R;amphi;192;549.0;39.78;571.5;41.41;45.9;46.7
+24832;AMPHI STID (STI-00);STI;amphi;165;286.9;20.79;427.5;30.98;17.1;32.5

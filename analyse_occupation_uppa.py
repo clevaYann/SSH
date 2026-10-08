@@ -548,6 +548,7 @@ def load_schedule(
     schedule_dates: set[dt.date] = set()
     unrecognized_promotions: set[str] = set()
     grouped: dict[tuple[Any, ...], dict[str, Any]] = {}
+    blocked: dict[tuple[Any, ...], dict[str, Any]] = {}
     weekday_names = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
     holidays = french_public_holidays(2025) | french_public_holidays(2026)
 
@@ -613,7 +614,26 @@ def load_schedule(
         if duration <= 0:
             raise SourceError(f"Durée nulle ou négative à la ligne {raw_rows + 1}.")
         if duration >= 8 * 60:
+            # Journée bloquée : exclue de l'occupation, mais conservée pour rendre le local indisponible dans les simulations
+            # et pour chiffrer, dans les amphis supprimés, un besoin qui n'est pas reporté.
             admin_count += 1
+            for occurrence in periods:
+                if (start and occurrence < start) or (end and occurrence > end) or occurrence in holidays or occurrence in closed_dates:
+                    continue
+                if occurrence.isoweekday() > 5 or occurrence.isocalendar().week in excluded_weeks or room_code not in rooms:
+                    continue
+                room = rooms[room_code]
+                block = blocked.setdefault(
+                    (occurrence, room_code, start_minute, end_minute, str(row.get("LIBELLE_MAT", "")).strip()),
+                    {
+                        "date": occurrence, "start": start_minute, "end": end_minute, "room_code": room_code, "room_name": room.name,
+                        "building": room.building, "capacity": room.capacity, "room_kind": room.kind,
+                        "subject": str(row.get("LIBELLE_MAT", "")).strip(), "type": str(row.get("TYPE", "")).strip(),
+                        "diplomas": set(), "blocked": True,
+                    },
+                )
+                if diploma:
+                    block["diplomas"].add(diploma)
             continue
 
         subject = str(row.get("LIBELLE_MAT", "")).strip()
@@ -697,10 +717,18 @@ def load_schedule(
         item["duration"] = item["end"] - item["start"]
         events.append(item)
 
+    blocks = []
+    for index, item in enumerate(sorted(blocked.values(), key=lambda x: (x["date"], x["start"], x["room_code"], x["subject"])), start=1):
+        item["diplomas"] = sorted(item["diplomas"], key=str.casefold)
+        item["id"] = f"B{index:06d}"
+        item["duration"] = item["end"] - item["start"]
+        blocks.append(item)
+
     if not events:
         raise SourceError("Aucune séance localisée par CODE_SAL ne reste dans la période/calendrier sélectionnés.")
     return {
         "events": events,
+        "blocks": blocks,
         "active_dates": sorted(schedule_dates),
         "source_rows": raw_rows,
         "source_date_min": date_min,
@@ -840,8 +868,10 @@ def scenario_result(
     recipients: list[Room],
     active_dates: list[dt.date],
     flexible: bool,
+    blocked: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    occupied = room_events(baseline)
+    # Les journées bloquées des locaux d'accueil les rendent indisponibles (elles ne comptent pas dans l'occupation).
+    occupied = room_events(baseline + list(blocked or []))
     promo_busy = promotion_busy_map(baseline)
     placed: list[dict[str, Any]] = []
     status_by_id: dict[str, dict[str, Any]] = {}
@@ -1217,6 +1247,7 @@ def legacy_template_dashboard(
 ) -> str:
     building_sites = building_sites or {}
     exam_periods = exam_periods or []
+    exam_hidden = "" if exam_periods else " hidden"
     template = template_path.read_text(encoding="utf-8")
     template = re.sub(r'<link rel="preconnect" href="https://fonts\.gstatic\.com" crossorigin>\s*', "", template)
     # Placé tout à la fin du document pour passer après les styles du gabarit (qui peuvent aussi être déclarés après </head>).
@@ -1241,8 +1272,8 @@ def legacy_template_dashboard(
     patch(
         '<button type="button" data-sem="S2">2nd sem.</button>',
         '<button type="button" data-sem="S2">2nd sem.</button>\n      '
-        '<button type="button" data-sem="EX" title="Périodes d\'examen (début janvier, fin mai–juin) — modifiables avec --examens">Examens</button>\n      '
-        '<button type="button" data-sem="HX" title="Tous les jours pédagogiques hors périodes d\'examen">Hors examens</button>',
+        f'<button type="button" data-sem="EX"{exam_hidden} title="Périodes d\'examen définies avec --examens">Examens</button>\n      '
+        f'<button type="button" data-sem="HX"{exam_hidden} title="Tous les jours pédagogiques hors périodes d\'examen">Hors examens</button>',
     )
     patch(
         "const heatmapSalleS2 = {{HEATMAPSALLES2}}\n;",
@@ -1780,6 +1811,7 @@ def amphis_html(
     """Page dédiée aux amphithéâtres : occupation avant/après dans chaque scénario, filtrable et triable."""
     amphis = sorted((r for r in rooms.values() if r.kind == "amphi"), key=lambda r: (r.building, r.name.casefold()))
     exam_periods = exam_periods or []
+    exam_hidden = "" if exam_periods else " hidden"
     exam_dates = [date for date in active_dates if is_exam_date(date, exam_periods)]
     exam_set = set(exam_dates)
     date_sets = {"AN": active_dates, "EX": exam_dates, "HX": [date for date in active_dates if date not in exam_set]}
@@ -1807,7 +1839,7 @@ def amphis_html(
         data.append(row)
     payload = json.dumps({"rows": data, "scenarios": names}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Amphithéâtres</h1><p class="muted">Occupation de chaque amphi avant (Référence) et après report. Créé le {safe_text(created_at)}</p></div></header>
-<div class="filters"><div class="msel" id="m-city"></div><div class="msel" id="m-site"></div><div class="msel" id="m-bld"></div><input id="f-q" type="search" placeholder="Rechercher un amphi…"><div class="seg"><button data-scope="all" aria-pressed="true">Tous les amphis</button><button data-scope="let" aria-pressed="false">LET (supprimés)</button><button data-scope="deg" aria-pressed="false">DEG (accueil)</button></div><div class="pseg" role="group" aria-label="Période"><button data-period="AN" aria-pressed="true">Année</button><button data-period="EX" aria-pressed="false" title="{safe_text(exam_text)}">Examens</button><button data-period="HX" aria-pressed="false">Hors examens</button></div><button type="button" class="reset" id="f-reset">Réinitialiser</button></div>
+<div class="filters"><div class="msel" id="m-city"></div><div class="msel" id="m-site"></div><div class="msel" id="m-bld"></div><input id="f-q" type="search" placeholder="Rechercher un amphi…"><div class="seg"><button data-scope="all" aria-pressed="true">Tous les amphis</button><button data-scope="let" aria-pressed="false">LET (supprimés)</button><button data-scope="deg" aria-pressed="false">DEG (accueil)</button></div><div class="pseg" role="group" aria-label="Période"><button data-period="AN" aria-pressed="true">Année</button><button data-period="EX" aria-pressed="false" title="{safe_text(exam_text)}"{exam_hidden}>Examens</button><button data-period="HX" aria-pressed="false"{exam_hidden}>Hors examens</button></div><button type="button" class="reset" id="f-reset">Réinitialiser</button></div>
 <p class="note" id="count"></p>
 <p class="muted" id="period-note"></p>
 <section class="card" id="avg" style="margin-bottom:12px"></section>
@@ -2422,7 +2454,8 @@ def run_self_test() -> None:
 # Indicateurs complémentaires : classements, remplissage, examens, avant/après
 # ---------------------------------------------------------------------------
 
-DEFAULT_EXAM_PERIODS = "2026-01-05:2026-01-17,2026-05-18:2026-06-30"
+# Aucune période d'examen par défaut : les périodes doivent venir du calendrier réel, passées avec --examens.
+DEFAULT_EXAM_PERIODS = ""
 PERIMETER_BUILDINGS = {"LET", "DEG"}
 PERIMETER_KINDS = {"amphi", "grande_salle"}
 
@@ -2825,6 +2858,22 @@ REALLOC_TYPES = {"cours", "cm", "td", "ctd"}
 REALLOC_MIN_GAIN = 20  # une réaffectation doit gagner au moins 20 places de capacité
 WEEKDAYS_FR = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
 
+# Colonnes du bilan après optimisation (CSV 23) : chaque séance LET est comptée une seule fois dans les six premières.
+RESIDUAL_LABELS = {
+    "SANS_CONFLIT_EFFECTIF_CONNU": "ok_known",
+    "SANS_CONFLIT_EFFECTIF_ESTIME": "ok_estimated",
+    "EN_CONFLIT_EFFECTIF_CONNU": "conflict_known",
+    "EN_CONFLIT_EFFECTIF_ESTIME": "conflict_estimated",
+    "NON_PLACEES": "not_placed",
+    "SANS_EFFECTIF": "no_effect",
+    "DONT_CONFLIT_AVEC_JOURNEE_BLOQUEE": "blocked_conflict",
+    "RELOGEES_SERIE_COMPLETE": "by_series",
+    "RELOGEES_LOCAL_VARIABLE": "by_session",
+    "RESTANT_A_HORAIRES_INCHANGES": "still",
+    "LISSAGE_COMPLEMENTAIRE": "smoothed",
+    "SANS_SOLUTION": "unsolved",
+}
+
 HYPOTHESIS_LABELS = {
     "H1a": "5 amphis DEG, mêmes jours et horaires",
     "H1b": "5 amphis DEG + grandes salles LET/DEG (50-100 places), mêmes jours et horaires",
@@ -2911,6 +2960,7 @@ def simulate_global_reallocation(
     pool: dict[str, Room],
     ssh_names: set[str],
     active_dates: list[dt.date],
+    blocked: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Réaffectation globale : chaque série de cours/TD SSH Pau mal dimensionnée va vers le plus petit local libre à toutes ses
     dates (mêmes jours et horaires). Les séries sont traitées par gaspillage décroissant et l'occupation est mise à jour après
@@ -2922,7 +2972,7 @@ def simulate_global_reallocation(
     other_events = [e for e in scope if e["id"] not in candidate_ids and not e.get("is_exam")]
 
     occupied: dict[tuple[str, dt.date], list[list[Any]]] = defaultdict(list)
-    for event in events:
+    for event in [*events, *(blocked or [])]:
         occupied[(event["room_code"], event["date"])].append([event["start"], event["end"], event["id"]])
 
     def free(code: str, date: dt.date, start: int, end: int) -> bool:
@@ -3012,8 +3062,8 @@ def simulate_global_reallocation(
             }
         )
 
-    # Contrôles : aucun conflit créé, capacité respectée, heures conservées
-    by_room = room_events(final_events)
+    # Contrôles : aucun conflit créé (y compris avec une journée bloquée), capacité respectée, heures conservées
+    by_room = room_events(final_events + list(blocked or []))
     for event in final_events:
         if event["id"] not in moved:
             continue
@@ -3093,6 +3143,162 @@ def simulate_global_reallocation(
     }
 
 
+def residual_assessment(
+    key: str,
+    result: dict[str, Any],
+    realloc: dict[str, Any],
+    source_events: list[dict[str, Any]],
+    blocked: list[dict[str, Any]],
+    pool: dict[str, Room],
+    active_dates: list[dt.date],
+    flexible: bool,
+) -> dict[str, Any]:
+    """Bilan d'une hypothèse après la réaffectation globale : chaque séance LET est classée une seule fois (sans conflit,
+    en conflit, non placée, sans effectif), puis on teste, pour les séances encore en conflit, un relogement ciblé au même
+    horaire dans les autres locaux de Pau (par série, puis séance par séance), et enfin un lissage dans la même semaine."""
+    final_events = realloc["events"]
+    grouped = room_events(final_events + list(blocked))
+    placed_by_source = {e["source_id"]: e for e in final_events if e.get("source_id")}
+
+    def overlaps(event: dict[str, Any], items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [o for o in items if o["id"] != event["id"] and o["start"] < event["end"] and event["start"] < o["end"]]
+
+    def hours(items: list[dict[str, Any]]) -> float:
+        return round(sum(active_minutes(e) for e in items) / 60, 2)
+
+    classes: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    in_conflict: list[dict[str, Any]] = []
+    blocked_conflicts: list[dict[str, Any]] = []
+    for source in source_events:
+        status = result["statuses"][source["id"]]["status"]
+        if status == "effectif_inconnu":
+            classes["no_effect"].append(source)
+            continue
+        if status not in {"place", "place_avec_chevauchement"}:
+            classes["not_placed"].append(source)
+            continue
+        placed = placed_by_source[source["id"]]
+        estimated = "estimated" if source.get("effect_estimated") else "known"
+        others = overlaps(placed, grouped[(placed["room_code"], placed["date"])])
+        if others:
+            classes[f"conflict_{estimated}"].append(source)
+            in_conflict.append(placed)
+            if any(o.get("blocked") for o in others):
+                blocked_conflicts.append(source)
+        else:
+            classes[f"ok_{estimated}"].append(source)
+
+    # Relogement ciblé au même horaire : locaux de Pau (sans les amphis supprimés), capacité suffisante, libres.
+    pool_list = sorted(pool.values(), key=lambda r: (r.capacity or 0, r.code))
+
+    def free(code: str, event: dict[str, Any]) -> bool:
+        return code != event["room_code"] and not overlaps(event, grouped[(code, event["date"])])
+
+    def move(event: dict[str, Any], room: Room) -> None:
+        grouped[(event["room_code"], event["date"])].remove(event)
+        grouped[(room.code, event["date"])].append(dict(event, room_code=room.code, room_name=room.name))
+
+    series: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
+    for event in in_conflict:
+        series[(event["source_room_code"], event["date"].weekday(), event["start"], event["end"], event["subject"], tuple(event["diplomas"]))].append(event)
+    by_series: list[dict[str, Any]] = []
+    by_session: list[dict[str, Any]] = []
+    remaining: list[dict[str, Any]] = []
+    for _, items in sorted(series.items(), key=lambda kv: (-len(kv[1]), kv[0][0], kv[0][4])):
+        need = max(e["effect"] for e in items)
+        chosen = next((r for r in pool_list if (r.capacity or 0) >= need and all(free(r.code, e) for e in items)), None)
+        if chosen:
+            for event in items:
+                move(event, chosen)
+            by_series.extend(items)
+        else:
+            remaining.extend(items)
+    still: list[dict[str, Any]] = []
+    for event in sorted(remaining, key=lambda e: (e["date"], e["start"], e["id"])):
+        chosen = next((r for r in pool_list if (r.capacity or 0) >= event["effect"] and free(r.code, event)), None)
+        if chosen:
+            move(event, chosen)
+            by_session.append(event)
+        else:
+            still.append(event)
+
+    # Lissage complémentaire des séances restantes : même semaine ISO, 08:00-18:00, local de Pau libre, promotions libres.
+    busy = promotion_busy_map([e for items in grouped.values() for e in items if not e.get("blocked")])
+    smoothed: list[dict[str, Any]] = []
+    unsolved: list[dict[str, Any]] = []
+    for event in still:
+        week = event["date"].isocalendar()[:2]
+        found = None
+        for date in (d for d in active_dates if d.isocalendar()[:2] == week):
+            for room in (r for r in pool_list if (r.capacity or 0) >= event["effect"]):
+                items = grouped[(room.code, date)]
+                for begin in range(8 * 60, 18 * 60 - event["duration"] + 1, 15):
+                    probe = dict(event, date=date, start=begin, end=begin + event["duration"])
+                    if overlaps(probe, items) or not promotion_free(event["diplomas"], date, begin, begin + event["duration"], busy):
+                        continue
+                    found = (room, probe)
+                    break
+                if found:
+                    break
+            if found:
+                break
+        if found:
+            room, probe = found
+            grouped[(event["room_code"], event["date"])].remove(event)
+            grouped[(room.code, probe["date"])].append(dict(probe, room_code=room.code, room_name=room.name))
+            for diploma in event["diplomas"]:
+                busy[(diploma, probe["date"])].append((probe["start"], probe["end"]))
+            smoothed.append(dict(event, smoothed_to=f"{probe['date'].isoformat()} {probe['start'] // 60:02d}:{probe['start'] % 60:02d} · {room.name}"))
+        else:
+            unsolved.append(event)
+
+    conflict_n = len(classes["conflict_known"]) + len(classes["conflict_estimated"])
+    if flexible:
+        verdict = "possible avec lissage" if conflict_n == 0 and not classes["not_placed"] else "conditionnée à la résolution de besoins identifiés"
+    elif conflict_n == 0:
+        verdict = "possible à horaires inchangés après optimisation des locaux"
+    elif not still:
+        verdict = "possible à horaires inchangés après optimisation des locaux, avec relogement ciblé"
+    elif not unsolved:
+        verdict = "possible avec un lissage complémentaire"
+    else:
+        verdict = "conditionnée à la résolution de besoins identifiés"
+    stats = {name: (len(classes[name]), hours(classes[name])) for name in ("ok_known", "ok_estimated", "conflict_known", "conflict_estimated", "not_placed", "no_effect")}
+    stats.update(
+        conflict=(conflict_n, hours(in_conflict)), blocked_conflict=(len(blocked_conflicts), hours(blocked_conflicts)),
+        by_series=(len(by_series), hours(by_series)), by_session=(len(by_session), hours(by_session)),
+        still=(len(still), hours(still)), smoothed=(len(smoothed), hours(smoothed)), unsolved=(len(unsolved), hours(unsolved)),
+        estimated_still=(sum(1 for e in still if e.get("effect_estimated")), hours([e for e in still if e.get("effect_estimated")])),
+    )
+    resolution = {e["id"]: "relogée au même horaire (série complète)" for e in by_series}
+    resolution.update({e["id"]: "relogée au même horaire (local variable selon la date)" for e in by_session})
+    resolution.update({e["id"]: f"lissée : {e['smoothed_to']}" for e in smoothed})
+    resolution.update({e["id"]: "sans solution" for e in unsolved})
+    rows = [
+        {
+            "HYPOTHESE": key, "ID_SEANCE": e["source_id"], "DATE": e["date"].isoformat(),
+            "HDEBUT": f"{e['start'] // 60:02d}:{e['start'] % 60:02d}", "HFIN": f"{e['end'] // 60:02d}:{e['end'] % 60:02d}",
+            "TYPE": e["type"], "LIBELLE_MAT": e["subject"], "NOM_DIP": " | ".join(e["diplomas"]), "LOCAL_LET": e["source_room_name"],
+            "LOCAL_APRES_REAFFECTATION": e["room_name"], "EFFECTIF": e["effect"], "EFFECTIF_ESTIME": "oui" if e.get("effect_estimated") else "non",
+            "HEURES": round(active_minutes(e) / 60, 2), "RESOLUTION": resolution.get(e["id"], ""),
+        }
+        for e in sorted(in_conflict, key=lambda e: (e["date"], e["start"], e["id"]))
+    ]
+    return {"key": key, "verdict": verdict, "stats": stats, "rows": rows, "flexible": flexible}
+
+
+def blocked_rows(blocks: list[dict[str, Any]], codes: set[str], role: dict[str, str]) -> list[dict[str, Any]]:
+    """Journées bloquées (réservations de 8 h ou plus) des locaux étudiés, sur les jours ouverts."""
+    return [
+        {
+            "ROLE": role.get(b["room_code"], ""), "LOCAL": b["room_name"], "DATE": b["date"].isoformat(),
+            "HDEBUT": f"{b['start'] // 60:02d}:{b['start'] % 60:02d}", "HFIN": f"{b['end'] // 60:02d}:{b['end'] % 60:02d}",
+            "LIBELLE_MAT": b["subject"], "NOM_DIP": " | ".join(b["diplomas"]), "HEURES_08_18": round(active_minutes(b) / 60, 2),
+        }
+        for b in blocks if b["room_code"] in codes
+    ]
+
+
 SORT_SCRIPT = """document.querySelectorAll('table.sortable').forEach(t=>t.querySelectorAll('th').forEach((th,i)=>th.onclick=()=>{const b=t.tBodies[0],r=[...b.rows],d=th.dataset.d==='a'?-1:1;th.dataset.d=d===1?'a':'d';const v=c=>{const x=c.innerText.replace(/\\s/g,'').replace(',','.'),n=parseFloat(x);return isNaN(n)?c.innerText:n};r.sort((x,y)=>{const a=v(x.cells[i]),c=v(y.cells[i]);return(typeof a==='number'&&typeof c==='number'?a-c:String(a).localeCompare(String(c),'fr'))*d});r.forEach(x=>b.appendChild(x))}));"""
 
 
@@ -3136,8 +3342,10 @@ def synthesis_v2_html(
     exam_periods: list[tuple[dt.date, dt.date]],
     estimates_on: bool,
     reallocs: dict[str, dict[str, Any]] | None = None,
+    residuals: dict[str, dict[str, Any]] | None = None,
 ) -> str:
-    """Synthèse V2 : hypothèses H1a/H1b/H1c et comparaisons, conflits persistants, réaffectation, données et limites."""
+    """Synthèse V2 : hypothèses H1a/H1b/H1c et comparaisons, conflits persistants, réaffectation, bilan après optimisation,
+    verdict par scénario, données et limites."""
     st = realloc["stats"]
     by_key = {row["key"]: row for row in hyp}
     nb = lambda n, h: f"{fr_number(n, 0)} séances · {fr_number(h, 0)} h"
@@ -3164,9 +3372,54 @@ def synthesis_v2_html(
             f"<b>{r['key']}</b> : {fr_number(r['placed_n'] + r['estimated_n'], 0)} séances reportées, dont {fr_number(r['overlap_n'], 0)} avec chevauchement ({fr_number(r['conflicts'], 0)} moments en double). Besoin non résolu : {fr_number(r['unresolved_n'], 0)} séances, {fr_number(r['unresolved_h'], 0)} h."
             for r in first
         ],
-        f"Réaffectation globale (collège SSH à Pau) : {fr_number(st['moved_sessions'], 0)} séances de cours/TD ({fr_number(st['moved_hours'], 0)} h) peuvent aller dans un local plus adapté sans aucun conflit ; "
+        f"Réaffectation globale (collège SSH à Pau, situation actuelle) : {fr_number(st['moved_sessions'], 0)} séances de cours/TD ({fr_number(st['moved_hours'], 0)} h) peuvent aller dans un local plus adapté sans créer de conflit ; "
         f"{fr_number(st['amphi_out_hours'], 0)} h quittent des amphis, soit {fr_number(st['amphi_net_hours'], 0)} h d'amphi libérées au net. Taux d'occupation moyen des amphis de Pau : {fr_number(st['amphi_rate_before'], 1)} % → {fr_number(st['amphi_rate_after'], 1)} %.",
     ]
+    residual_block = ""
+    if residuals:
+        let_n, let_h = schedule.get("let_blocks", (0, 0.0))
+        nh = lambda pair: f"{fr_number(pair[0], 0)} · {fr_number(pair[1], 1)} h"
+        bilan = [
+            [
+                f"{k} : {HYPOTHESIS_LABELS[k]}", nh(r["stats"]["ok_known"]), nh(r["stats"]["ok_estimated"]), nh(r["stats"]["conflict_known"]),
+                nh(r["stats"]["conflict_estimated"]), nh(r["stats"]["not_placed"]), nh(r["stats"]["no_effect"]),
+            ]
+            for k, r in residuals.items()
+        ]
+        resolution = [
+            [
+                k, nh(r["stats"]["conflict"]), nh(r["stats"]["blocked_conflict"]), nh(r["stats"]["by_series"]), nh(r["stats"]["by_session"]),
+                nh(r["stats"]["smoothed"]), nh(r["stats"]["unsolved"]),
+            ]
+            for k, r in residuals.items()
+        ]
+        verdicts = []
+        for k, r in residuals.items():
+            s_ = r["stats"]
+            needs = [f"{nh(s_['no_effect'])} sans effectif à reloger"]
+            if let_n:
+                needs.append(f"{fr_number(let_n, 0)} journées bloquées des amphis LET ({fr_number(let_h, 1)} h) à reloger")
+            if s_["not_placed"][0]:
+                needs.append(f"{nh(s_['not_placed'])} non placées")
+            if s_["unsolved"][0]:
+                needs.append(f"{nh(s_['unsolved'])} sans solution même avec lissage dans la semaine")
+            detail = (
+                "aucun conflit dans les locaux d'accueil" if not s_["conflict"][0]
+                else f"{nh(s_['conflict'])} encore en conflit après réaffectation ; {nh(s_['by_series'])} relogées au même horaire par série, "
+                f"{nh(s_['by_session'])} dans un local variable selon la date, {nh(s_['smoothed'])} à lisser dans la semaine"
+            )
+            estimated = (s_["ok_estimated"][0] + s_["conflict_estimated"][0], s_["ok_estimated"][1] + s_["conflict_estimated"][1])
+            verdicts.append(
+                f"<li><b>{safe_text(k)}</b> : suppression <b>{safe_text(r['verdict'])}</b> ({detail}). "
+                f"Conditionnée dans tous les cas à : {'; '.join(needs)}. Incertitude : {nh(estimated)} reposent sur un effectif estimé.</li>"
+            )
+        residual_block = f"""<section class="card"><h2>Après optimisation : conflits restants et besoins non pris en charge</h2>
+<p class="muted">Situation après chaque hypothèse <b>et</b> après la réaffectation globale (les amphis LET supprimés n'y sont plus utilisés). Chaque séance des amphis LET est comptée <b>une seule fois</b> : « en conflit » = elle partage encore son local avec une autre séance ou avec une journée bloquée. Les incertitudes d'effectif sont séparées des conflits (colonnes « effectif estimé »), sans double comptage.</p>
+{sortable_table(["Hypothèse", "Sans conflit (effectif connu)", "Sans conflit (effectif estimé)", "En conflit (effectif connu)", "En conflit (effectif estimé)", "Non placées", "Sans effectif"], bilan)}
+<p class="muted">Résolution des séances encore en conflit : au même horaire dans un autre local de Pau assez grand et libre (par série complète, puis séance par séance), puis par lissage dans la même semaine (08h-18h, promotions libres). C'est un test de faisabilité : les locaux d'autres composantes, l'équipement et les déplacements ne sont pas vérifiés.</p>
+{sortable_table(["Hypothèse", "En conflit après réaffectation", "dont sur une journée bloquée", "Relogées même horaire (série)", "Relogées même horaire (local variable)", "Lissage complémentaire", "Sans solution"], resolution, 1)}</section>
+<section class="card"><h2>Verdict par scénario</h2><ul>{"".join(verdicts)}</ul>
+<p class="muted">Validations pratiques à conduire avec les gestionnaires : mutualisation des locaux (dont ceux d'autres composantes), équipements, déplacements entre bâtiments, disponibilité des enseignants en cas de lissage, capacité adaptée aux examens. Les journées bloquées des amphis LET (réservations de 8 h ou plus, exclues de l'occupation) sont listées dans le CSV 25.</p></section>"""
     first_date, last_date = min(active_dates), max(active_dates)
     exam_text = " ; ".join(f"{a.strftime('%d/%m/%Y')} – {b.strftime('%d/%m/%Y')}" for a, b in exam_periods) or "aucune"
     limits = [
@@ -3179,7 +3432,8 @@ def synthesis_v2_html(
             if estimates_on else "Aucune estimation n'est utilisée dans cette exécution."
         ),
         f"<b>Examens :</b> les séances de type examen, contrôle continu, rattrapage, oral, soutenance ou devoir sont distinguées des cours ordinaires. Elles ont des contraintes d'accueil propres (surveillance, espacement) que le modèle ne représente pas : elles sont donc <b>exclues de la réaffectation globale</b> et comptées à part dans les hypothèses.",
-        f"<b>Période couverte :</b> l'export va du {first_date.strftime('%d/%m/%Y')} au {last_date.strftime('%d/%m/%Y')}. Périodes d'examen demandées : {safe_text(exam_text)}. Les examens de mai-juin ne sont pas couverts tant que l'export n'est pas complété jusqu'à la fin de l'année universitaire.",
+        f"<b>Période couverte :</b> l'export va du {first_date.strftime('%d/%m/%Y')} au {last_date.strftime('%d/%m/%Y')}. Périodes d'examen : {safe_text(exam_text)} (option --examens). Les examens de mai-juin ne sont pas couverts tant que l'export n'est pas complété jusqu'à la fin de l'année universitaire : cette réserve s'applique à toutes les conclusions.",
+        f"<b>Journées bloquées :</b> les réservations de 8 h ou plus sont exclues de l'occupation. Elles rendent toutefois le local indisponible dans les simulations et la réaffectation. Dans les amphis LET, elles représentent {fr_number(schedule.get('let_blocks', (0, 0))[0], 0)} journées ({fr_number(schedule.get('let_blocks', (0, 0))[1], 1)} h) qui ne sont pas reportées : un besoin à reloger.",
         "<b>Séances sans salle :</b> une part importante des lignes de l'export n'a aucun code de salle ; l'occupation réelle des salles est donc sous-estimée.",
         f"<b>Réaffectation :</b> périmètre = promotions de la structure « SSH - Pau », cours, CM, TD et CTD dans les locaux banalisés du campus de Pau ({st['pool_n']} locaux, toutes capacités). Les TP, réunions et autres types sont hors périmètre ({fr_number(st['other_n'], 0)} séances). Une série (même salle, jour, horaire et groupes) est réaffectée en bloc, vers un local libre à toutes ses dates ; l'équipement des salles, l'accessibilité et l'appartenance des locaux à d'autres composantes ne sont pas vérifiés.",
         "<b>Lissage (H2, H3b) :</b> test théorique de disponibilité ; les enseignants ne sont pas dans l'export et ne sont pas contrôlés.",
@@ -3199,7 +3453,8 @@ def synthesis_v2_html(
 <section class="card"><h2>Hypothèses de report des 3 amphis de Lettres</h2><p class="muted">H1a, H1b et H1c : mêmes jours et horaires, occupations existantes conservées, capacité vérifiée. H2 et H3b (avec lissage) restent pour comparaison. « Besoin non résolu » = sans effectif + effectif estimé + sans solution + non couvertes.</p>
 {sortable_table(["Hypothèse", "Locaux d'accueil", "À reporter", "dont examens", "Reportées (effectif connu)", "Reportées (effectif estimé)", "dont avec chevauchement", "Chevauchements", "Sans effectif", "Sans solution", "Non couvertes (capacité)", "Besoin non résolu"], table_rows)}</section>
 {realloc_block}
-<section class="card"><h2>Conflits persistants</h2><ul>{"".join(persistent)}</ul></section>
+{residual_block}
+<section class="card"><h2>Conflits persistants (avant réaffectation)</h2><ul>{"".join(persistent)}</ul></section>
 <section class="card"><h2>Données et limites de l'analyse</h2><ul>{"".join(f"<li>{t}</li>" for t in limits)}</ul></section>
 <script>{SORT_SCRIPT}</script></main>"""
     return html_document("Synthèse V2", created_at, body, BASE_CSS)
@@ -3407,7 +3662,9 @@ def main(argv: list[str] | None = None) -> int:
         flexible_keys = {"H2", "H3b"}
         scenarios: dict[str, dict[str, Any]] = {}
         for key, recipients in recipients_by_key.items():
-            scenarios[key] = scenario_result(key, baseline_without_source, source_events, recipients, active_dates, key in flexible_keys)
+            scenarios[key] = scenario_result(
+                key, baseline_without_source, source_events, recipients, active_dates, key in flexible_keys, schedule["blocks"]
+            )
             validate_scenario(key, scenarios[key], source_events, recipients, key in flexible_keys)
 
         run_directory, stamp, created_at = create_run_directory(args.sortie.expanduser().resolve())
@@ -3520,15 +3777,51 @@ def main(argv: list[str] | None = None) -> int:
         hyp_rows = hypothesis_rows(scenarios, source_events, recipients_by_key)
         write_csv(run_directory / f"18_hypotheses_report_{stamp}.csv", list(hypotheses_csv_rows(hyp_rows)[0]), hypotheses_csv_rows(hyp_rows))
         pool = reallocation_pool(rooms, building_sites)
-        reallocs = {"Référence": simulate_global_reallocation(events, rooms, pool, ssh_pau_names, active_dates)}
+        # Après une hypothèse, les trois amphis LET sont supprimés : ils ne peuvent plus recevoir de séries réaffectées.
+        pool_without_let = {code: room for code, room in pool.items() if code not in source_codes}
+        reallocs = {"Référence": simulate_global_reallocation(events, rooms, pool, ssh_pau_names, active_dates, schedule["blocks"])}
         for key, result in scenarios.items():
-            reallocs[key] = simulate_global_reallocation(result["events"], rooms, pool, ssh_pau_names, active_dates)
+            reallocs[key] = simulate_global_reallocation(result["events"], rooms, pool_without_let, ssh_pau_names, active_dates, schedule["blocks"])
+            if any(target.code in source_codes for target in reallocs[key]["moved"].values()):
+                raise AnalysisError(f"Réaffectation après {key} : une série a été placée dans un amphi LET supprimé.")
         realloc = reallocs["Référence"]
+        residuals = {
+            key: residual_assessment(
+                key, result, reallocs[key], source_events, schedule["blocks"], pool_without_let, active_dates, key in flexible_keys
+            )
+            for key, result in scenarios.items()
+        }
+        recipient_codes = {room.code for recipients in recipients_by_key.values() for room in recipients}
+        block_roles = {code: "amphi LET supprimé" for code in source_codes}
+        block_roles.update({code: "local d'accueil" for code in recipient_codes})
+        blocked_csv_rows = blocked_rows(schedule["blocks"], source_codes | recipient_codes, block_roles)
+        let_blocks = [b for b in schedule["blocks"] if b["room_code"] in source_codes]
+        schedule["let_blocks"] = (len(let_blocks), sum(active_minutes(b) for b in let_blocks) / 60)
         series_headers = ["estimated", "room", "code", "building", "kind", "capacity", "max_effect", "mean_effect", "weekday", "start", "end", "subject", "type", "diplomas", "sessions", "hours", "target", "target_code", "target_capacity", "target_building", "target_kind", "freed_hours", "status"]
         session_headers = list(realloc["sessions"][0]) if realloc["sessions"] else ["ID_SEANCE"]
         room_headers = ["code", "room", "building", "kind", "capacity", "hours_before", "rate_before", "hours_after", "rate_after", "fill_before", "fill_after"]
         over_headers = ["DATE", "LOCAL", "BATIMENT", "CAPACITE", "EFFECTIF", "DEPASSEMENT", "TYPE", "LIBELLE_MAT", "NOM_DIP", "EXAMEN"]
-        v2_summary = synthesis_v2_html(created_at, hyp_rows, realloc, schedule, active_dates, exam_periods, bool(args.effectifs_estimes), reallocs)
+        v2_summary = synthesis_v2_html(
+            created_at, hyp_rows, realloc, schedule, active_dates, exam_periods, bool(args.effectifs_estimes), reallocs, residuals
+        )
+        residual_headers = ["HYPOTHESE", "DESCRIPTION", "VERDICT", *RESIDUAL_LABELS]
+        write_csv(
+            run_directory / f"23_bilan_apres_optimisation_{stamp}.csv", residual_headers,
+            [
+                {"HYPOTHESE": k, "DESCRIPTION": HYPOTHESIS_LABELS[k], "VERDICT": r["verdict"],
+                 **{label: f"{r['stats'][name][0]} séances ; {r['stats'][name][1]} h" for label, name in RESIDUAL_LABELS.items()}}
+                for k, r in residuals.items()
+            ],
+        )
+        conflict_rows = [row for r in residuals.values() for row in r["rows"]]
+        write_csv(
+            run_directory / f"24_conflits_restants_{stamp}.csv",
+            list(conflict_rows[0]) if conflict_rows else ["HYPOTHESE", "ID_SEANCE", "RESOLUTION"], conflict_rows,
+        )
+        write_csv(
+            run_directory / f"25_journees_bloquees_{stamp}.csv",
+            ["ROLE", "LOCAL", "DATE", "HDEBUT", "HFIN", "LIBELLE_MAT", "NOM_DIP", "HEURES_08_18"], blocked_csv_rows,
+        )
         realloc_labels = {"Référence": "Situation actuelle (sans report)", **{k: f"Après {k} : {HYPOTHESIS_LABELS[k]}" for k in scenarios}}
         v2_realloc = reallocation_html(created_at, reallocs, realloc_labels)
         for key, item in reallocs.items():

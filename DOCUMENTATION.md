@@ -40,7 +40,7 @@ Une ligne du planning n'est **pas** une séance unique : c'est un modèle qui se
 
 Il applique ensuite ces règles :
 
-1. **Blocages administratifs exclus** : une réservation de 8 h ou plus n'est pas un cours.
+1. **Blocages administratifs exclus** : une réservation de 8 h ou plus n'est pas un cours. Elle ne compte pas dans l'occupation, mais elle rend le local **indisponible** dans les simulations et la réaffectation. Dans les amphis LET, ces journées bloquées sont chiffrées à part comme un besoin à reloger (CSV 25).
 2. **Week-ends exclus.**
 3. **Jours fériés nationaux exclus** (calculés, y compris Pâques, Ascension, Pentecôte).
 4. **Fermetures de l'université exclues** : Toussaint, Noël, hiver, printemps (voir l'option `--fermetures`).
@@ -155,7 +155,7 @@ Chaque exécution crée un **nouveau dossier** `resultats_AAAAMMJJ_HHMMSS_xxxxxx
 | `--modele-dashboard` | Gabarit du dashboard | `BDD/dashboard_template.html` |
 | `--sortie` | Dossier où créer les résultats | dossier du projet |
 | `--fermetures` | Fermetures `AAAA-MM-JJ:AAAA-MM-JJ`, séparées par des virgules | vacances 2025-2026 |
-| `--examens` | Périodes d'examen, même format | 5-17 janvier et 18 mai-30 juin 2026 |
+| `--examens` | Périodes d'examen, même format | aucune (à fournir depuis le calendrier réel) |
 | `--debut`, `--fin` | Limiter l'analyse à une période (`AAAA-MM-JJ`) | tout l'export |
 | `--exclure-semaines` | Semaines ISO à exclure (`43,52,1`) | aucune |
 | `--effectifs-estimes` | Estimer les effectifs manquants (voir 3.5) | désactivé |
@@ -181,11 +181,11 @@ La synthèse (`00_synthese_….html`) et la page des indicateurs (`15_indicateur
 
 ### 5.2 Les périodes d'examen
 
-Dans chaque vue de cas, le sélecteur de période propose **Année**, **1er sem.**, **2nd sem.**, **Examens** et **Hors examens**. Les périodes d'examen par défaut sont **début janvier (5 au 17 janvier 2026)** et **fin mai à juin (18 mai au 30 juin 2026)** ; on les change avec `--examens`.
+Dans chaque vue de cas, le sélecteur de période propose **Année**, **1er sem.**, **2nd sem.** et, si des périodes d'examen sont données avec `--examens`, **Examens** et **Hors examens**. Aucune période n'est définie par défaut : les anciennes valeurs (janvier, mai-juin) étaient fictives. Sans `--examens`, ces deux boutons sont masqués.
 
 Le choix s'applique à tous les onglets : taux et heures de chaque salle, grille horaire, graphique hebdomadaire (semaines contenant un jour d'examen), synthèse exécutive (nombre de jours et de créneaux) et liste des chevauchements. La page Amphis a le même sélecteur. « Hors examens » = tous les autres jours pédagogiques, donc heures d'examen + heures hors examens = heures de l'année.
 
-**Attention :** l'export s'arrête au 30 avril 2026. La période de mai-juin ne contient donc aucune donnée, et « Examens » ne couvre aujourd'hui que dix jours de janvier.
+**Attention :** l'export s'arrête au 30 avril 2026. La période de mai-juin ne contient donc aucune donnée.
 
 ### 5.3 Pourquoi le « taux d'occupation moyen » ne change presque pas d'un scénario à l'autre
 
@@ -228,7 +228,7 @@ Ces points sont aussi écrits dans la page « Indicateurs » du dashboard.
 1. **Séances sans salle.** Environ 45 % des lignes de l'export n'ont aucun `CODE_SAL`. Elles comptent pour les jours ouverts mais pas dans l'occupation d'une salle. Si certaines se déroulent en réalité dans les amphis LET ou DEG, l'occupation est sous-estimée.
 2. **Effectifs manquants.** Environ 300 séances des amphis LET n'ont aucun effectif et ne sont pas reportées. La faisabilité repose sur les autres.
 3. **Effectif supérieur à la capacité.** Quelques séances dépassent la capacité de leur salle. Elles sont conservées et listées dans le journal d'anomalies : il faut vérifier la capacité ou l'effectif.
-4. **Fenêtre de l'export.** L'export va du 8 septembre 2025 au 30 avril 2026. Il n'y a rien pour mai et juin : les « examens » se limitent à quelques jours de janvier.
+4. **Fenêtre de l'export.** L'export va du 8 septembre 2025 au 30 avril 2026. Il n'y a rien pour mai et juin : les examens de fin d'année ne sont pas couverts.
 5. **Lissage.** C'est un test théorique de disponibilité, pas un emploi du temps validé. Les enseignants ne figurent pas dans l'export : leur disponibilité n'est pas contrôlée. Les plateaux d'examen ne sont pas modélisés.
 6. **Rapprochements de bâtiments.** Quelques codes du catalogue sont rattachés à d'autres codes du classeur Excel (`B45→B4B5`, `DAL_R→DAL`, `SCI_R→SCI`, `IPM→IPM1`, `XPL→XLP`, `GTR→RT`, `TEL→Télésite Tarbes`). Les bâtiments `BDL` et `BTB` n'ont pas de correspondance : leurs salles n'ont ni ville ni site.
 
@@ -274,6 +274,8 @@ Périmètre : cours, CM, TD et CTD des promotions de la structure « SSH - Pau �
 
 Sont exclus du déplacement : examens et contrôles (type ou intitulé), TP et autres types, séances sans effectif. Les séances dont l'effectif dépasse la capacité sont listées à part.
 
+Après une hypothèse de report, les trois amphis LET sont supprimés : ils sont retirés des locaux disponibles pour la réaffectation (le programme s'arrête si une série y est placée). Les journées bloquées rendent aussi un local indisponible.
+
 Fichiers : `19_reaffectation_globale.html` (page), `19_reaffectation_avant_apres.csv` (une ligne par série : local, capacité, effectif, local proposé, heures libérées, statut), `20_reaffectation_seances.csv` (par séance), `21_reaffectation_locaux.csv` (taux d'occupation et de remplissage avant/après par local), `22_effectif_superieur_capacite.csv`.
 
 ### 9.3 Données et limites
@@ -294,3 +296,19 @@ Les séances sans `EFFCALCU` ne reçoivent jamais d'effectif « constaté ». Av
 3. **Promotion parente** dans `EXP_PROMOTION` : environ 96 % des cas.
 
 Les séances concernées sont marquées « estimé » partout (CSV, tableaux, dashboard), comptées à part, et leurs heures restent dans le besoin non résolu. Les estimations ne servent jamais à signaler un dépassement de capacité. Compter les étudiants d'`EXP_ETUDIANT` par promotion n'a pas été retenu : le comptage est inférieur à l'effectif réel dans la plupart des cas.
+
+### 9.6 Bilan après optimisation et verdict par scénario
+
+La Synthèse V2 contient deux sections calculées **après chaque hypothèse puis après la réaffectation globale** :
+
+1. **Conflits restants et besoins non pris en charge.** Chaque séance des amphis LET est classée une seule fois : sans conflit (effectif connu ou estimé), en conflit (effectif connu ou estimé), non placée, sans effectif. « En conflit » signifie qu'elle partage encore son local avec une autre séance ou avec une journée bloquée. Les incertitudes d'effectif sont donc séparées des conflits, sans double comptage.
+2. **Résolution des conflits restants.** Test de faisabilité au même horaire, dans un autre local de Pau assez grand et libre (amphis LET exclus) : d'abord par série complète, puis séance par séance (le local peut alors varier selon la date). Les séances encore sans solution sont ensuite cherchées dans la même semaine (08h-18h, promotions libres) : c'est le **lissage complémentaire**.
+
+Verdict par scénario :
+- **possible à horaires inchangés après optimisation des locaux** : aucun conflit, ou tous résolus au même horaire ;
+- **possible avec un lissage complémentaire** : quelques séances doivent changer de créneau dans la semaine ;
+- **conditionnée à la résolution de besoins identifiés** : des séances restent sans solution.
+
+Dans tous les cas, le verdict rappelle les besoins non modélisés (séances sans effectif, journées bloquées des amphis LET) et les validations pratiques à conduire (mutualisation des locaux, équipements, déplacements, disponibilité des enseignants, capacité d'examen).
+
+Fichiers : `23_bilan_apres_optimisation.csv` (une ligne par hypothèse avec le verdict), `24_conflits_restants.csv` (une ligne par séance encore en conflit après réaffectation, avec sa résolution), `25_journees_bloquees.csv` (journées bloquées des amphis LET et des locaux d'accueil).
