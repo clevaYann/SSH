@@ -1,0 +1,30 @@
+﻿perimetre;salle;batiment;capacite;seances;remplissage_moyen_pct;ecart_moyen_places
+annee;Amphi 3 (LET-02);LET;300;347;30.3;209.1
+annee;Salle de cours 107 (LET-00);LET;68;488;37.3;42.6
+annee;Salle de cours C_C19 (DEG-01);DEG;52;243;39.2;31.6
+annee;Amphi A_A400 (DEG-00);DEG;400;450;39.6;241.6
+annee;Amphi 1 (LET-00);LET;150;346;40.1;89.9
+annee;Amphi A_A600 (DEG-00);DEG;600;339;43.6;338.5
+annee;Salle de cours 14 (LET-00);LET;98;490;44.0;54.9
+annee;Amphi A_A300 (DEG-00);DEG;300;410;44.4;166.9
+annee;Salle de cours C_C01 (DEG-00);DEG;79;142;45.1;43.3
+annee;Salle de cours B_B1 (DEG-00);DEG;100;483;45.6;54.4
+annee;Salle de cours 13 (LET-00);LET;70;445;46.6;37.3
+annee;Salle de cours 301 (LET-02);LET;70;396;48.0;36.4
+annee;Salle de cours 32 (LET-02);LET;80;325;49.2;40.6
+annee;Amphi C_A120 (DEG-00);DEG;120;268;50.1;59.9
+annee;Amphi 2 (LET-00);LET;140;337;50.9;68.7
+annee;Salle de cours 10 (LET-00);LET;60;227;54.7;27.2
+annee;Salle de cours 121 (LET-00);LET;70;443;55.1;31.4
+annee;Amphi A_A150 (DEG-00);DEG;150;392;57.4;63.9
+annee;Salle de cours 31 (LET-02);LET;60;396;59.2;24.5
+annee;Salle de cours B_B2 (DEG-00);DEG;76;411;60.5;30.0
+annee;Salle de cours 12 (LET-00);LET;60;389;60.9;23.5
+annee;Salle de cours 30 (LET-02);LET;60;444;61.7;23.0
+annee;Salle de cours 23 (LET-01);LET;80;357;63.4;29.3
+annee;Salle de cours 120 (LET-00);LET;62;345;65.6;21.3
+annee;Salle de cours C_C03 (DEG-00);DEG;50;446;69.4;15.3
+annee;Salle de cours 11 (LET-00);LET;80;383;71.7;22.7
+annee;Salle de cours 220 (LET-01);LET;60;380;79.3;12.4
+annee;Salle de cours C_C04 (DEG-00);DEG;50;418;100.8;-0.4
+annee;Salle de cours C_C18 (DEG-01);DEG;50;426;143.7;-21.8
