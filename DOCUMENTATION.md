@@ -284,6 +284,8 @@ Dans le dashboard, passer la souris sur le libellé d'un indicateur (titre de co
 
 ### 9.5 Effectifs manquants
 
+**Saisir de vrais effectifs.** Ouvrez le CSV `17_usages_sans_effectif_<horodatage>.csv`, remplissez la colonne `EFFECTIF_A_RENSEIGNER` (nombre entier) pour les séances que vous connaissez, enregistrez-le sous `BDD/effectifs_saisis.csv` (ou indiquez le chemin avec `--effectifs-saisis`), puis relancez `analyse_occupation_uppa.py`. Les séances complétées sont traitées comme des données réelles : le dashboard HTML et les CSV sont recalculés. Une ligne dont la date ou l'heure ne correspond plus au planning est ignorée avec un avertissement. Un fichier `NOM_DIP;EFFECTIF_MANUEL` fixe l'effectif de toutes les séances sans effectif d'une promotion. Les effectifs du planning ne sont jamais écrasés.
+
 L'estimation d'effectifs (ancienne option `--effectifs-estimes`) a été supprimée : le script ne travaille que sur des données réelles. Compter les étudiants d'`EXP_ETUDIANT` par promotion n'a pas été retenu : le comptage est inférieur à l'effectif réel dans la plupart des cas.
 
 ## 10. Finalisation : conclusion sur la suppression des 3 amphis LET

@@ -1,0 +1,317 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../css/reference_1.css"></head><body>
+<meta name="date" content="2026-10-21T12:06:18+02:00">
+<title>Occupation des Salles UPPA— Scénario H1a</title>
+<link rel="stylesheet" href="../css/reference_2.css">
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">SSH · Direction du Patrimoine</p>
+      <h1>Occupation des salles — UPPA— Scénario H1a</h1>
+      <p class="meta">Taux d'usage réel de 451 salles (amphithéâtres, salles de cours, TD, TP), reconstitué séance par séance à partir du calendrier des cours.</p>
+    </div>
+    <div class="period">08/09/2025 – 30/04/2026<br>Créé le 21/10/2026 à 12:06:18</div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Pages du tableau de bord">
+    <button class="tab" role="tab" data-tab="overview" aria-selected="true">Vue d'ensemble</button>
+    <button class="tab" role="tab" data-tab="grid" aria-selected="false">Grille horaire</button>
+    <button class="tab" role="tab" data-tab="weekly" aria-selected="false">Analyse hebdomadaire</button>
+    <button class="tab" role="tab" data-tab="exec" aria-selected="false">Synthèse exécutive</button>
+    <button class="tab" role="tab" data-tab="conflits" aria-selected="false">Chevauchements</button>
+  </nav>
+
+  <div class="filterbar">
+    <span class="flabel">Filtres</span>
+
+    <div class="msel" id="g-ville-msel">
+      <button type="button" class="msel-btn" id="g-ville-btn" aria-haspopup="listbox" aria-expanded="false">Toutes les villes</button>
+      <div class="msel-panel" id="g-ville-panel" hidden role="listbox" aria-label="Filtrer par ville (plusieurs choix possibles)">
+        <div class="msel-actions"><button type="button" data-action="all">Tout cocher</button><button type="button" data-action="none">Tout décocher</button></div>
+        <div class="msel-list" id="g-ville-list"></div>
+      </div>
+    </div>
+
+    <div class="msel" id="g-site-msel">
+      <button type="button" class="msel-btn" id="g-site-btn" aria-haspopup="listbox" aria-expanded="false">Tous les sites</button>
+      <div class="msel-panel" id="g-site-panel" hidden role="listbox" aria-label="Filtrer par site (plusieurs choix possibles)">
+        <div class="msel-actions"><button type="button" data-action="all">Tout cocher</button><button type="button" data-action="none">Tout décocher</button></div>
+        <div class="msel-list" id="g-site-list"></div>
+      </div>
+    </div>
+
+    <div class="msel" id="g-batiment-msel">
+      <button type="button" class="msel-btn" id="g-batiment-btn" aria-haspopup="listbox" aria-expanded="false">Tous les bâtiments</button>
+      <div class="msel-panel" id="g-batiment-panel" hidden role="listbox" aria-label="Filtrer par bâtiment (plusieurs choix possibles)">
+        <div class="msel-actions"><button type="button" data-action="all">Tout cocher</button><button type="button" data-action="none">Tout décocher</button></div>
+        <div class="msel-list" id="g-batiment-list"></div>
+      </div>
+    </div>
+
+    <input type="search" id="g-search" placeholder="Rechercher une salle…" aria-label="Rechercher une salle">
+
+    <div class="msel" id="g-taux-msel">
+      <button type="button" class="msel-btn" id="g-taux-btn" aria-haspopup="listbox" aria-expanded="false">Tous les taux</button>
+      <div class="msel-panel" id="g-taux-panel" hidden role="listbox" aria-label="Filtrer par niveau d'usage (plusieurs choix possibles)">
+        <div class="msel-list" id="g-taux-list">
+          <label><input type="checkbox" value="low"> Sous-utilisée (&lt; 10%)</label>
+          <label><input type="checkbox" value="mid"> Modérée (10–30%)</label>
+          <label><input type="checkbox" value="high"> Forte (≥ 30%)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="seg" role="group" aria-label="Semestre">
+      <button type="button" data-sem="" aria-pressed="true">Année</button>
+      <button type="button" data-sem="S1">1er sem.</button>
+      <button type="button" data-sem="S2">2nd sem.</button>
+      <button type="button" data-sem="EX" title="Périodes d'examen (début janvier, fin mai–juin) — modifiables avec --examens">Examens</button>
+      <button type="button" data-sem="HX" title="Tous les jours pédagogiques hors périodes d'examen">Hors examens</button>
+    </div>
+    <button class="reset" id="g-reset" type="button">Réinitialiser</button>
+    <span class="active-note" id="g-note"></span>
+  </div>
+
+  <!-- ============ TAB 1 : VUE D'ENSEMBLE ============ -->
+  <section class="tabpanel active" id="tab-overview">
+
+    <section class="kpis" aria-label="Indicateurs clés">
+      <div class="kpi"><span class="label">Salles suivies</span><span class="value" id="kpi-total">—</span></div>
+      <div class="kpi good"><span class="label">Taux d'occupation moyen</span><span class="value" id="kpi-taux">—</span></div>
+      <div class="kpi flag"><span class="label">Sous-utilisées (&lt; 10%)</span><span class="value" id="kpi-sous">—</span></div>
+      <div class="kpi"><span class="label">Fortement sollicitées (≥ 30%)</span><span class="value" id="kpi-sur">—</span></div>
+      <div class="kpi"><span class="label">Heures-salles occupées</span><span class="value" id="kpi-heures">—</span></div>
+    </section>
+
+    <div class="charts-row">
+      <section class="card">
+        <div class="card-head"><h2>Taux moyen par bâtiment</h2><span class="sub" id="batiment-count-sub"></span></div>
+        <div class="barlist" id="chart-batiment" role="img" aria-label="Classement des bâtiments par taux d'occupation moyen"></div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2>Répartition par tranche</h2><span class="sub">Nb de salles et % du total</span></div>
+        <p class="opp-note">Chaque colonne regroupe les salles par tranche de <b>taux d'occupation</b> — la part du temps disponible (8h–18h, hors vacances) réellement utilisée sur la période. Ex. : <code>0–5%</code> = salles occupées moins de 5% du temps ; <code>40+</code> = salles occupées plus de 40% du temps. Le pourcentage sous chaque barre indique la part de l'ensemble des salles suivies qui se trouve dans cette tranche.</p>
+        <div class="histo" id="chart-distrib" role="img" aria-label="Histogramme du nombre de salles par tranche de taux d'occupation, avec part en % du total"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-head"><h2>Fort potentiel d'optimisation</h2><span class="sub">Grande capacité, faiblement utilisées</span></div>
+      <p class="opp-note">Salles de <code>≥ 40 places</code> occupées <code>&lt; 10%</code> du temps disponible — les meilleures candidates à un réemploi, un partage inter-composantes ou une requalification d'espace.</p>
+      <div class="barlist" id="chart-opp" role="img" aria-label="Salles à fort potentiel d'optimisation"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Détail par salle</h2><span class="sub">Tri par colonne · pagination</span></div>
+      <div class="table-scroll" style="margin-top:0">
+        <table>
+          <thead><tr>
+            <th data-key="salle">Salle<span class="arrow">↕</span></th>
+            <th data-key="batiment">Bâtiment<span class="arrow">↕</span></th>
+            <th data-key="etage">Étage<span class="arrow">↕</span></th>
+            <th data-key="capa" class="num">Capacité<span class="arrow">↕</span></th>
+            <th data-key="surface" class="num">Surface m²<span class="arrow">↕</span></th>
+            <th data-key="ratio" class="num">m²/place<span class="arrow">↕</span></th>
+            <th data-key="heures" class="num">Heures occ.<span class="arrow">↕</span></th>
+            <th data-key="nbCours" class="num">Cours<span class="arrow">↕</span></th>
+            <th data-key="taux" class="num" data-active data-dir="desc">Taux<span class="arrow">↓</span></th>
+          </tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button id="pg-prev" type="button">← Précédent</button>
+        <span id="pg-info">Page 1</span>
+        <button id="pg-next" type="button">Suivant →</button>
+        <span class="spacer"></span>
+        <label for="pg-size" class="visually-hidden">Lignes par page</label>
+        <select id="pg-size" aria-label="Lignes par page">
+          <option value="20">20 / page</option><option value="50" selected>50 / page</option>
+          <option value="100">100 / page</option><option value="99999">Tout afficher</option>
+        </select>
+      </div>
+    </section>
+  </section>
+
+  <!-- ============ TAB 2 : GRILLE HORAIRE (style EEI) ============ -->
+  <section class="tabpanel" id="tab-grid">
+    <section class="card">
+      <div class="card-head">
+        <h2>Grille horaire par salle</h2>
+        <span class="sub">% d'occupation moyen par créneau, sur toute la période</span>
+      </div>
+      <p class="opp-note">Chaque cellule = part du temps où la salle est occupée sur ce créneau d'une heure, moyennée sur l'ensemble des semaines de la période (hors vacances/fériés). Inspiré du suivi horaire de la Direction du Patrimoine.</p>
+      <div class="legend">
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-0)"></span>0%</span>
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-2)"></span>~20%</span>
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-4)"></span>~50%</span>
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-5)"></span>≥60%</span>
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-x)"></span>&gt;100% = conflit potentiel (réservations qui se chevauchent)</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr id="grid-head">
+            <th data-key="salle">Salle<span class="arrow">↕</span></th>
+            <th data-key="batiment">Bât.<span class="arrow">↕</span></th>
+            <th data-key="etage">Ét.<span class="arrow">↕</span></th>
+            <th data-key="surface" class="num">m²<span class="arrow">↕</span></th>
+            <th data-key="capa" class="num">Places<span class="arrow">↕</span></th>
+            <th data-key="ratio" class="num">m²/pl.<span class="arrow">↕</span></th>
+            <th data-key="taux" class="num" data-active data-dir="desc">Taux<span class="arrow">↓</span></th>
+          </tr></thead>
+          <tbody id="grid-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button id="grid-prev" type="button">← Précédent</button>
+        <span id="grid-info">Page 1</span>
+        <button id="grid-next" type="button">Suivant →</button>
+        <span class="spacer"></span>
+        <span class="sub" id="grid-count"></span>
+      </div>
+    </section>
+  </section>
+
+  <!-- ============ TAB 3 : ANALYSE HEBDOMADAIRE (style SSH PPTX) ============ -->
+  <section class="tabpanel" id="tab-weekly">
+    <section class="card">
+      <div class="card-head">
+        <h2>Occupation moyenne par semaine</h2>
+        <span class="sub" id="weekly-scope">Tous bâtiments</span>
+      </div>
+      <p class="opp-note">Taux d'occupation journalier moyen (8h–18h) pour chaque semaine ISO de la période. <span class="swatch" style="background:var(--accent)"></span>1er semestre (S37–S53) · <span class="swatch" style="background:var(--brass)"></span>2nd semestre (S1–S19).</p>
+      <div class="weekly-chart" id="weekly-chart" role="img" aria-label="Occupation moyenne par semaine"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Heatmap jour × heure</h2>
+        <span class="sub" id="heatmap-scope">Tous bâtiments</span>
+      </div>
+      <p class="opp-note">% d'occupation moyen par jour de semaine et créneau horaire — utilise tous les filtres actifs ci-dessus, y compris Année/1er sem./2nd sem.</p>
+      <div class="legend">
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-0)"></span>0%</span>
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-4)"></span>~50%</span>
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-5)"></span>≥60%</span>
+        <span class="lswatch"><span class="lbox" style="background:var(--heat-x)"></span>&gt;100% = conflit</span>
+      </div>
+      <div class="hm-grid" id="hm-grid"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Semaines de pointe</h2><span class="sub">5 semaines les plus chargées, tous bâtiments</span></div>
+      <div class="barlist" id="chart-peakweeks" role="img" aria-label="Semaines de pointe"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Jour de pointe</h2><span class="sub" id="peakday-scope">Tous bâtiments</span></div>
+      <p class="opp-note">Moyenne du taux d'occupation (8h–18h) sur tous les créneaux horaires, pour chaque jour de la semaine — utilise tous les filtres actifs ci-dessus, y compris Année/1er sem./2nd sem.</p>
+      <div class="barlist" id="chart-peakdays" role="img" aria-label="Jour de pointe"></div>
+    </section>
+  </section>
+
+  <!-- ============ TAB 4 : SYNTHÈSE EXÉCUTIVE (style consulting) ============ -->
+  <section class="tabpanel" id="tab-exec">
+    <section class="card">
+      <div class="card-head"><h2>Optimisation des capacités d'enseignement</h2><span class="sub">Ce qu'il faut retenir avant arbitrage immobilier</span></div>
+      <div class="exec-hero">
+        <div class="exec-num"><span class="n" id="exec-jours">—</span><span class="l">jours analysés</span></div>
+        <div class="exec-num"><span class="n brass" id="exec-creneaux">1 480</span><span class="l" id="exec-creneaux-l">créneaux disponibles / salle (h)</span></div>
+        <div class="exec-num"><span class="n" id="exec-base">10 h</span><span class="l">base quotidienne 8h–18h</span></div>
+        <div class="exec-num"><span class="n warn" id="exec-seances">—</span><span class="l">séances reconstituées</span></div>
+        <div class="exec-num"><span class="n" id="exec-taux">—</span><span class="l">taux d'occupation moyen</span></div>
+        <div class="exec-num"><span class="n warn" id="exec-conflits">—</span><span class="l">créneaux salle/jour/heure en conflit potentiel</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Synthèse exécutive</h2></div>
+      <div class="insight-row" id="insight-row"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Méthodologie retenue</h2><span class="sub">Reconstitution du calendrier réel des séances</span></div>
+      <div class="pipeline" id="pipeline"></div>
+      <p class="lecture" style="margin-top:16px"><b>Lecture —</b> PERIODE liste les vraies semaines ISO où chaque cours récurrent a lieu ; une exclusion des blocages administratifs (≥8h, ex. « Réservation de salles ») évite de surestimer l'occupation.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Bâtiments : classement</h2><span class="sub">Taux moyen d'occupation</span></div>
+      <div class="mini-tables">
+        <div>
+          <table><thead><tr><th>Top 5 bâtiments</th><th class="num">Taux</th></tr></thead><tbody id="exec-top5"></tbody></table>
+        </div>
+        <div>
+          <table><thead><tr><th>5 bâtiments les plus faibles</th><th class="num">Taux</th></tr></thead><tbody id="exec-bottom5"></tbody></table>
+        </div>
+        <div>
+          <table><thead><tr><th>Salles à optimiser (extrait)</th><th class="num">Places</th></tr></thead><tbody id="exec-opp5"></tbody></table>
+        </div>
+      </div>
+      <p class="lecture" style="margin-top:16px"><b>Lecture —</b> La marge de manœuvre se trouve surtout dans la redistribution : peu de salles saturent, mais beaucoup de grandes salles restent peu mobilisées.</p>
+    </section>
+  </section>
+
+  <!-- ============ TAB 5 : CHEVAUCHEMENTS ============ -->
+  <section class="tabpanel" id="tab-conflits">
+    <section class="kpis" aria-label="Indicateurs de chevauchement">
+      <div class="kpi flag"><span class="label">Chevauchements détectés</span><span class="value" id="cf-kpi-total">—</span></div>
+      <div class="kpi"><span class="label">Salles concernées</span><span class="value" id="cf-kpi-salles">—</span></div>
+      <div class="kpi"><span class="label">Motifs récurrents uniques</span><span class="value" id="cf-kpi-motifs">—</span></div>
+      <div class="kpi"><span class="label">Groupes fusionnés (même matière)</span><span class="value" id="cf-kpi-fusion">—</span></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Tous les chevauchements</h2>
+        <span class="sub" id="cf-scope">Année complète</span>
+      </div>
+      <p class="opp-note">Réservations de la <b>même salle physique</b> (<code>CODE_SAL</code> identique des deux côtés) sur des créneaux horaires qui se recouvrent, reconstitué séance par séance depuis PERIODE (semaines ISO réelles). Les lignes où les deux créneaux portent la <b>même matière</b> à l'horaire identique sont le plus souvent des groupes fusionnés (plusieurs groupes d'un même cours réunis) — pas un vrai conflit — et sont masquées par défaut. Les conflits sont conservés et détaillés séance par séance ; une occupation supérieure à 100 % signale des chevauchements.</p>
+      <div class="filterbar" style="margin-bottom:0">
+        <span class="flabel">Filtres</span>
+        <input type="search" id="cf-search" placeholder="Rechercher une salle, un bâtiment, une matière…" aria-label="Rechercher un chevauchement">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--ink);cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="cf-show-fusion"> Afficher aussi les groupes fusionnés
+        </label>
+        <span class="active-note" id="cf-note"></span>
+      </div>
+      <div class="table-scroll" style="margin-top:14px">
+        <table>
+          <thead><tr>
+            <th data-key="salle">Salle<span class="arrow">↕</span></th>
+            <th data-key="batiment">Bâtiment<span class="arrow">↕</span></th>
+            <th data-key="dateSort">Date<span class="arrow">↕</span></th>
+            <th data-key="jour">Jour<span class="arrow">↕</span></th>
+            <th>Créneau 1</th>
+            <th>Créneau 2</th>
+            <th data-key="overlapMin" class="num" data-active data-dir="desc">Chevauch.<span class="arrow">↓</span></th>
+          </tr></thead>
+          <tbody id="cf-table-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button id="cf-prev" type="button">← Précédent</button>
+        <span id="cf-info">Page 1</span>
+        <button id="cf-next" type="button">Suivant →</button>
+        <span class="spacer"></span>
+        <label for="cf-size" class="visually-hidden">Lignes par page</label>
+        <select id="cf-size" aria-label="Lignes par page">
+          <option value="20">20 / page</option><option value="50" selected>50 / page</option>
+          <option value="100">100 / page</option><option value="99999">Tout afficher</option>
+        </select>
+      </div>
+    </section>
+  </section>
+
+  <footer>
+    <p>Source : emploi du temps UPPA (extraction du non renseignée dans le CSV fourni), croisé avec EXP_SALLE.csv (capacités) Les surfaces ne figurent pas dans EXP_SALLE et restent non renseignées..</p>
+    <p>Heures reconstituées séance par séance depuis PERIODE (semaines ISO réelles) ; blocages administratifs (≥8h continues) exclus ; doublons et chevauchements dédoublonnés (une seule séance conservée par créneau, plafond 10h/jour).</p>
+  </footer>
+
+</div>
+
+<script src="../data/H1a.js"></script><script src="../js/reference.js"></script>
+
+<link rel="stylesheet" href="../css/contrast_fix.css">
+<script src="../data/surdimensionnement.js"></script><script src="../js/tips_js.js"></script></body></html>

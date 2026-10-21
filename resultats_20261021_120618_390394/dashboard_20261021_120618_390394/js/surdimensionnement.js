@@ -1,0 +1,1 @@
+document.querySelectorAll('th').forEach((th,i)=>th.onclick=()=>{let t=th.closest('table'),b=t.tBodies[0],r=[...b.rows],d=th.dataset.d==='a'?-1:1;th.dataset.d=d===1?'a':'d';r.sort((x,y)=>x.cells[i].innerText.localeCompare(y.cells[i].innerText,'fr',{numeric:true})*d);r.forEach(x=>b.appendChild(x));})

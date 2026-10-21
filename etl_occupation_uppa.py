@@ -916,6 +916,51 @@ def detail_rows(
     return details
 
 
+def apply_manual_effects(events: list[dict[str, Any]], path: Path) -> tuple[int, list[str]]:
+    """Applique les effectifs saisis à la main (données réelles fournies par l'utilisateur, jamais estimées).
+
+    Le CSV est le fichier « 17_usages_sans_effectif » complété : colonnes ID_SEANCE et EFFECTIF_A_RENSEIGNER
+    (ou EFFECTIF_MANUEL). Un fichier NOM_DIP + EFFECTIF_MANUEL fixe l'effectif de toutes les séances sans effectif
+    de cette promotion. Seules les séances sans effectif sont complétées ; les effectifs du planning ne sont jamais écrasés.
+    Si DATE et HDEBUT sont présents, ils doivent correspondre à la séance (sinon le planning a changé : ligne ignorée).
+    """
+    iterator = iter_csv_dicts(path)
+    headers = set(next(iterator)["__headers__"])
+    value_col = "EFFECTIF_A_RENSEIGNER" if "EFFECTIF_A_RENSEIGNER" in headers else "EFFECTIF_MANUEL"
+    if value_col not in headers or not ({"ID_SEANCE"} <= headers or {"NOM_DIP"} <= headers):
+        raise SourceError(f"{path.name} : colonnes ID_SEANCE (ou NOM_DIP) et EFFECTIF_A_RENSEIGNER requises.")
+    by_id = {event["id"]: event for event in events}
+    by_dip: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for event in events:
+        if event["effect"] is None:
+            for diploma in event["diplomas"]:
+                by_dip[diploma].append(event)
+    applied, warnings = 0, []
+    for line, row in enumerate(iterator, start=2):
+        value = parse_effect(str(row.get(value_col, "")).strip())
+        if value is None:
+            continue  # cellule vide ou invalide : séance laissée sans effectif
+        targets: list[dict[str, Any]] = []
+        if row.get("ID_SEANCE", "").strip():
+            event = by_id.get(row["ID_SEANCE"].strip())
+            if event is None:
+                warnings.append(f"ligne {line} : séance {row['ID_SEANCE']} introuvable")
+                continue
+            if (row.get("DATE") and row["DATE"].strip() != event["date"].isoformat()) or (
+                row.get("HDEBUT") and row["HDEBUT"].strip() != f"{event['start'] // 60:02d}:{event['start'] % 60:02d}"
+            ):
+                warnings.append(f"ligne {line} : {row['ID_SEANCE']} ne correspond plus à la date/heure du planning, ignorée")
+                continue
+            targets = [event]
+        elif row.get("NOM_DIP", "").strip():
+            targets = by_dip.get(row["NOM_DIP"].strip(), [])
+        for event in targets:
+            if event["effect"] is None:
+                event["effect"], event["effect_issue"], event["effect_manual"] = value, "effectif saisi", True
+                applied += 1
+    return applied, warnings
+
+
 def model_template_from_stream(path: Path, destination: Path) -> int:
     iterator = iter_csv_dicts(path)
     metadata = next(iterator)
@@ -1884,6 +1929,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sortie", type=Path, default=Path(__file__).resolve().parent)
     parser.add_argument("--debut", help="Date ISO YYYY-MM-DD incluse.")
     parser.add_argument("--fin", help="Date ISO YYYY-MM-DD incluse.")
+    parser.add_argument(
+        "--effectifs-saisis",
+        type=Path,
+        default=None,
+        help="CSV d'effectifs réels saisis (fichier 17_usages_sans_effectif complété, colonne EFFECTIF_A_RENSEIGNER, ou NOM_DIP;EFFECTIF_MANUEL) ; "
+        "effectifs_saisis*.csv du dossier des sources par défaut. Relancer le script met le dashboard à jour.",
+    )
     parser.add_argument("--exclure-semaines", help="Semaines ISO à exclure, ex. 43,52,1.")
     parser.add_argument("--modele-effectifs", action="store_true", help="Écrit les NOM_DIP distincts à renseigner puis s'arrête.")
     return parser
@@ -1952,6 +2004,12 @@ def main(argv: list[str] | None = None) -> int:
             raise AnalysisError("Aucun jour pédagogique ouvré ne reste après les filtres.")
         events = schedule["events"]
         source_codes = {r.code for r in rooms.values() if r.building == "LET" and r.kind == "amphi"}
+        manual_path = args.effectifs_saisis.expanduser().resolve() if args.effectifs_saisis else next(iter(sorted(directory.glob("effectifs_saisis*.csv"))), None)
+        if manual_path and manual_path.is_file():
+            applied, warnings = apply_manual_effects(events, manual_path)
+            print(f"Effectifs saisis ({manual_path.name}) : {applied} séances complétées.")
+            for message in warnings[:20]:
+                print(f"  attention : {message}")
         schedule["missing_effect"] = sum(e["effect"] is None for e in events)
         estimate_methods: Counter[str] = Counter()  # pas d'estimation d'effectifs dans cet ETL
         source_events = [e for e in events if e["room_code"] in source_codes]

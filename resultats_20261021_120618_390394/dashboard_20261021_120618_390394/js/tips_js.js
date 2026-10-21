@@ -1,0 +1,4 @@
+(()=>{const norm=t=>t.replace(/[↕▲▼]/g,'').replace(/\s+/g,' ').trim().toLowerCase();const R=T.map(([p,x])=>[new RegExp(p),x]);
+function tip(el){if(el.title||el.dataset.tipDone)return;const own=[...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ');const t=norm(own||'');if(t.length<3||t.length>90)return;for(const [r,x] of R){if(r.test(t)){el.title=x;el.style.cursor='help';break}}el.dataset.tipDone='1'}
+function scan(){document.querySelectorAll('th,.kpi span,.kpi .label,.exec-num .l,h2,h3,.card-head .sub,.sub,.flabel,.seg button,.pseg button,.tick,.hm-h,label,summary b,p.muted b').forEach(tip)}
+scan();new MutationObserver(()=>scan()).observe(document.body,{childList:true,subtree:true});})();

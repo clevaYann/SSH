@@ -1,0 +1,7 @@
+
+:root{--ink-faint:#5a6671;--warning:#8f5c0c;--brass:#86601d;--heat-4:#25757d}
+.heatcell.heat-4,.heatcell.heat-5,.heatcell.heat-x{color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ink-faint:#92a0aa;--warning:#dea748;--brass:#d6a555;--heat-4:#2f8890}
+:root:not([data-theme="light"]) .heatcell.heat-4,:root:not([data-theme="light"]) .heatcell.heat-5,:root:not([data-theme="light"]) .heatcell.heat-x,:root:not([data-theme="light"]) .pstep .circle{color:#0b1115}}
+:root[data-theme="dark"]{--ink-faint:#92a0aa;--warning:#dea748;--brass:#d6a555;--heat-4:#2f8890}
+:root[data-theme="dark"] .heatcell.heat-4,:root[data-theme="dark"] .heatcell.heat-5,:root[data-theme="dark"] .heatcell.heat-x,:root[data-theme="dark"] .pstep .circle{color:#0b1115}
