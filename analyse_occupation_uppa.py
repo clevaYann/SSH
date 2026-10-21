@@ -546,6 +546,7 @@ def load_schedule(
     prefixed_normalized = 0
     prefixed_rejected: Counter[str] = Counter()
     schedule_dates: set[dt.date] = set()
+    unlocated: dict[tuple[Any, ...], dict[str, Any]] = {}
     unrecognized_promotions: set[str] = set()
     grouped: dict[tuple[Any, ...], dict[str, Any]] = {}
     weekday_names = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
@@ -638,6 +639,15 @@ def load_schedule(
                 continue
             schedule_dates.add(occurrence)
             if not room_code:
+                unlocated_entry = unlocated.setdefault(
+                    (occurrence, start_minute, end_minute, subject, course_type),
+                    {"date": occurrence, "start": start_minute, "end": end_minute, "subject": subject, "type": course_type,
+                     "diplomas": set(), "effects": set(), "is_exam": is_exam_session(course_type, subject)},
+                )
+                if diploma:
+                    unlocated_entry["diplomas"].add(diploma)
+                if effect is not None:
+                    unlocated_entry["effects"].add(effect)
                 continue
             room = rooms.get(room_code)
             actual_name = room.name if room else room_name
@@ -725,6 +735,7 @@ def load_schedule(
         "outside_range_count": outside_range_count,
         "missing_room_code_count": missing_room_code_count,
         "unknown_codes": unknown_codes,
+        "unlocated": list(unlocated.values()),
         "prefixed_normalized": prefixed_normalized,
         "prefixed_rejected": prefixed_rejected,
         "unrecognized_promotions": sorted(unrecognized_promotions, key=str.casefold),
@@ -777,6 +788,9 @@ def find_conflicts(events: list[dict[str, Any]], room_codes: set[str] | None = N
                             "type2": second["type"],
                             "diploma2": " | ".join(second["diplomas"]),
                             "overlap": min(first["end"], second["end"]) - max(first["start"], second["start"]),
+                            "id1": first["id"], "id2": second["id"],
+                            "unc1": first["effect"] is None or bool(first.get("effect_estimated")),
+                            "unc2": second["effect"] is None or bool(second.get("effect_estimated")),
                         }
                     )
     return conflicts
@@ -958,8 +972,13 @@ def active_minutes(event: dict[str, Any]) -> int:
     return clipped_minutes(event["start"], event["end"])
 
 
+# Codes des salles ayant au moins une séance dans la référence : les salles du catalogue sans aucune séance sont
+# retirées des tableaux de bord (None = pas de filtre). Renseigné dans main() avant les calculs.
+ROOMS_WITH_SESSIONS: set[str] | None = None
+
+
 def calculate_room_stats(events: list[dict[str, Any]], rooms: dict[str, Room], active_dates: list[dt.date]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    room_map = dict(rooms)
+    room_map = {code: room for code, room in rooms.items() if ROOMS_WITH_SESSIONS is None or code in ROOMS_WITH_SESSIONS}
     for event in events:
         if event["room_code"] not in room_map:
             room_map[event["room_code"]] = Room(
@@ -1488,14 +1507,24 @@ CASE_EXPLANATIONS: dict[str, dict[str, str]] = {
         "how": "Choisissez une ville, un site ou un bâtiment avec les listes. Cochez des amphis pour voir leur moyenne. Cliquez sur le titre d'une colonne pour trier.",
     },
     "sans_effectif": {
-        "title": "Les cours dont on ne connaît pas le nombre d'étudiants",
-        "what": "Ces cours des amphis de Lettres n'ont pas pu être déplacés, car le planning ne dit pas combien d'étudiants y assistent.",
+        "title": "Usages sans effectif : qui, quoi, quel besoin ?",
+        "what": "Séances des amphis de Lettres dont le planning ne donne pas le nombre d'étudiants. Elles sont classées par usage (UTLA, enseignements et examens SSH, usages internes ou externes, réservations à identifier) d'après leurs intitulés.",
         "how": "La page explique pourquoi, donne la liste complète (triable, avec recherche) et le moyen de les placer : renseigner leur effectif dans le fichier CSV.",
     },
     "reference": {
         "title": "Référence : la situation actuelle",
         "what": "Comment les salles sont utilisées aujourd'hui, sans rien changer.",
         "how": "C'est le point de départ pour comparer avec H1a, H1b, H1c, H2 et H3b. Un taux au-dessus de 100 % veut dire que deux cours étaient prévus en même temps dans la même salle.",
+    },
+    "conclusion": {
+        "title": "Conclusion : peut-on supprimer les trois amphis LET ?",
+        "what": "Pour chaque scénario, la réponse (possible à horaires inchangés après optimisation, possible avec lissage, ou conditionnée), les séances qui restent en conflit et les conditions à lever.",
+        "how": "Chaque séance reportée n'est comptée qu'une fois : placée sans conflit, en conflit, ou non placée. Les conflits dus à des effectifs estimés sont séparés de ceux dont l'effectif est connu.",
+    },
+    "verification": {
+        "title": "Points à vérifier en priorité",
+        "what": "Les trois sources d'incertitude qui peuvent changer la conclusion : séances LET placées sur effectif estimé, séances sans salle dans l'export, anomalies de capacité des locaux de report.",
+        "how": "Chaque tableau est trié par priorité. Les listes complètes sont dans les CSV 23, 24 et 25.",
     },
     "synthese_v2": {
         "title": "Synthèse V2 : les trois hypothèses, la réaffectation, les limites",
@@ -1651,51 +1680,6 @@ def scenario_story(
     return lines
 
 
-def estimate_missing_effects(
-    events: list[dict[str, Any]], promotion_effects: dict[str, set[int]]
-) -> tuple[list[dict[str, Any]], Counter[str]]:
-    """Estime l'effectif des séances qui n'en ont pas, à partir des autres données du planning (jamais présenté comme constaté).
-
-    Ordre de priorité, du plus fiable au moins fiable :
-    1. même groupe : plus grand effectif de ses autres séances (>= effectif réel dans 99 % des cas contrôlés) ;
-    2. groupes frères « <Promotion><sous-ensemble>... » : plus grand effectif connu (>= réel dans 83 % des cas) ;
-    3. promotion parente dans EXP_PROMOTION (>= réel dans 96 % des cas contrôlés sur les amphis de Lettres).
-    """
-    known: dict[str, list[int]] = defaultdict(list)
-    for event in events:
-        if event["effect"] is not None and len(event["diplomas"]) == 1:
-            known[event["diplomas"][0]].append(event["effect"])
-    siblings: dict[str, set[str]] = defaultdict(set)
-    for name in known:
-        if name.startswith("<") and ">" in name:
-            siblings[name[: name.rfind(">") + 1]].add(name)
-    output: list[dict[str, Any]] = []
-    methods: Counter[str] = Counter()
-    for event in events:
-        if event["effect"] is not None or len(event["diplomas"]) != 1:
-            output.append(event)
-            continue
-        name = event["diplomas"][0]
-        value, method = None, ""
-        if known.get(name):
-            value, method = max(known[name]), "même groupe, autres séances"
-        elif name.startswith("<") and ">" in name:
-            others = [max(known[m]) for m in siblings.get(name[: name.rfind(">") + 1], ()) if m != name]
-            if others:
-                value, method = max(others), "groupes frères (maximum)"
-            else:
-                parent = re.match(r"<([^>]*)>", name)
-                parent_values = promotion_effects.get(parent.group(1), set()) if parent else set()
-                if parent_values:
-                    value, method = max(parent_values), "promotion parente (EXP_PROMOTION)"
-        if value:
-            output.append(dict(event, effect=value, effect_estimated=True, effect_method=method, effect_issue=f"estimé : {method}"))
-            methods[method] += 1
-        else:
-            output.append(event)
-    return output, methods
-
-
 def unknown_effect_rows(source_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Séances des amphis à reporter dont l'effectif reste inconnu (donc non placées dans les simulations)."""
     weekdays = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
@@ -1714,6 +1698,60 @@ def unknown_effect_rows(source_events: list[dict[str, Any]]) -> list[dict[str, A
             }
         )
     return rows
+
+
+def usage_html(created_at: str, rows: list[dict[str, Any]], summary: list[dict[str, Any]], estimated: int, total: int, keys: tuple[str, ...]) -> str:
+    """Page « Usages sans effectif » : qualification des usages, besoin de capacité et liste complète."""
+    hours = sum(r["HEURES_8H_18H"] for r in rows)
+    full = sum(r["HEURES_COMPLETES"] for r in rows)
+    cards = "".join(
+        f'<div class="kpi"><span>{safe_text(a)}</span><strong>{safe_text(b)}</strong></div>'
+        for a, b in (
+            ("Séances sans effectif", fr_number(len(rows), 0)),
+            ("Heures à reloger (8h-18h)", f"{fr_number(hours, 0)} h"),
+            ("Heures, durée complète", f"{fr_number(full, 0)} h"),
+            ("Part des séances à reporter", f"{fr_number(100 * len(rows) / max(1, total), 1)} %"),
+        )
+    )
+    cols = ["Usage", "Séances", "Heures 8h-18h", "Heures durée complète", "Amphis LET concernés", "Capacité de l'amphi", "Confiance"]
+    cols += [f"{k} : relogeable si effectif ≤ {t}" for k in keys for t in (50, 100, 150)]
+    table = sortable_table(
+        cols,
+        [
+            [e["category"], e["n"], fr_number(e["hours"], 1), fr_number(e["full_hours"], 1), e["rooms"], e["cap_range"], e["confidence"]]
+            + [f"{e[f'{k}_{t}']} / {e['n']}" for k in keys for t in (50, 100, 150)]
+            for e in summary
+        ],
+        1,
+    )
+    helps = "".join(f"<li><b>{safe_text(e['category'])}</b> : {safe_text(e['help'])}</li>" for e in summary)
+    detail_cols = [("DATE", "Date"), ("HDEBUT", "Début"), ("HFIN", "Fin"), ("NOM_SAL", "Amphi"), ("CAPACITE_LOCAL", "Capacité"), ("LIBELLE_MAT", "Matière"),
+                   ("NOM_DIP", "Groupe"), ("CATEGORIE", "Usage"), ("CONFIANCE", "Confiance"), ("HEURES_8H_18H", "Heures")]
+    payload = json.dumps(
+        {"rows": [{k: r[k] for k, _ in detail_cols} for r in rows], "cols": detail_cols, "cats": [e["category"] for e in summary]}, ensure_ascii=False, separators=(",", ":")
+    ).replace("</", "<\\/")
+    estimate_text = (
+        f"{fr_number(estimated, 0)} séances LET ont reçu un effectif estimé : elles sont placées à titre indicatif et listées dans « À vérifier »."
+        if estimated else "Aucune estimation d'effectif n'est utilisée dans cette exécution."
+    )
+    body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Usages sans effectif</h1><p class="muted">Créé le {safe_text(created_at)}</p></div></header>
+<section class="card"><h2>De quoi s'agit-il ?</h2>
+<p>Pour placer un cours dans une salle, il faut connaître le nombre d'étudiants. Ces séances des amphis de Lettres n'ont ni liste d'étudiants ni identifiant de promotion dans le planning : le programme <b>ne devine pas</b> leur effectif. Elles ne sont donc pas déplacées, mais <b>leurs heures restent à reloger</b> tant que leur annulation ou leur absence de réalisation n'est pas confirmée.</p>
+<p>Les usages sont qualifiés d'après les intitulés et les informations disponibles (promotion, type). Ce classement est automatique : il identifie les utilisateurs probables et le besoin, avant de solliciter le gestionnaire de planning SSH.</p><p>{safe_text(estimate_text)}</p></section>
+<div class="kpis">{cards}</div>
+<section class="card"><h2>Usages qualifiés</h2><ul>{helps}</ul>{table}
+<p class="muted">Besoin de capacité : l'effectif est inconnu, donc le tableau indique, pour chaque hypothèse, dans combien de cas un local d'accueil d'au moins 50, 100 ou 150 places est libre au même jour et à la même heure. Si l'effectif réel est inférieur à ce seuil, la séance est relogeable.</p></section>
+<section class="card"><h2>Liste des séances</h2><div class="filters"><input id="q" type="search" placeholder="Rechercher…"><select id="c"><option value="">Tous les usages</option></select></div><p class="muted" id="n"></p><div class="tablewrap"><table id="t" class="sortable"><thead></thead><tbody></tbody></table></div><p class="muted">Liste complète avec la colonne « EFFECTIF_A_RENSEIGNER » dans le CSV 17.</p></section>
+<script type="application/json" id="payload">{payload}</script><script>
+(()=>{{const p=JSON.parse(document.getElementById('payload').textContent),$=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]));
+p.cats.forEach(c=>$('#c').add(new Option(c,c)));let k='DATE',d=1;
+function render(){{const q=$('#q').value.toLowerCase(),c=$('#c').value,v=p.rows.filter(r=>(!c||r.CATEGORIE===c)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q))).sort((a,b)=>{{const x=a[k],y=b[k];return(typeof x==='string'?x.localeCompare(y,'fr'):x-y)*d}});
+$('#t thead').innerHTML='<tr>'+p.cols.map(([f,l])=>'<th data-k="'+f+'">'+esc(l)+(f===k?(d>0?' ▲':' ▼'):' ↕')+'</th>').join('')+'</tr>';
+$('#t tbody').innerHTML=v.map(r=>'<tr>'+p.cols.map(([f])=>'<td>'+esc(r[f])+'</td>').join('')+'</tr>').join('');$('#n').textContent=v.length+' séance(s) sur '+p.rows.length+'.';
+document.querySelectorAll('#t th').forEach(th=>th.onclick=()=>{{d=k===th.dataset.k?-d:1;k=th.dataset.k;render()}})}}
+$('#q').addEventListener('input',render);$('#c').addEventListener('change',render);render();}})();
+</script></main>"""
+    return html_document("Usages sans effectif", created_at, body, BASE_CSS)
 
 
 def unknown_effect_html(created_at: str, rows: list[dict[str, Any]], estimated: int, total: int) -> str:
@@ -1944,6 +1982,14 @@ INDICATOR_TIPS: list[tuple[str, str]] = [
     (r"^origine", "D'où vient le cours : option UTLA, réservation de salle sans promotion, ou autre groupe."),
     (r"^occurrences série", "Nombre de séances de la série concernée."),
     (r"^plus petite salle libre", "Plus petit local assez grand et libre à toutes les dates de la série."),
+    (r"^usage$|^usage \(|^catégorie", "Catégorie d'usage déduite de l'intitulé : UTLA, enseignement SSH, examen SSH, autre usage interne, usage externe ou réservation à identifier."),
+    (r"^confiance", "Fiabilité du classement : élevée (promotion connue), moyenne (mot-clé), faible (intitulé générique)."),
+    (r"^priorité", "Ordre de vérification : haute si l'effectif estimé est peu fiable ou si la séance est en conflit."),
+    (r"relogeable si effectif", "Nombre de séances pour lesquelles un local d'accueil d'au moins ce nombre de places est libre au même jour et à la même heure."),
+    (r"^placées sans conflit|^restent en conflit|^non placées|^relogées pour résoudre|^en conflit avant", "Classement exclusif des séances reportées après optimisation : chaque séance est comptée dans une seule colonne."),
+    (r"^moments en double", "Nombre de moments où deux séances occupent la même salle en même temps, et heures doublées entre 8 h et 18 h."),
+    (r"^conclusion|^horaires inchangés|^lissage complémentaire|^conditions à lever", "Réponse par scénario : possible à horaires inchangés après optimisation, possible avec lissage, ou conditionnée."),
+    (r"^anomalie|^effectif max observé", "Incohérence entre la capacité du local et les effectifs observés dans ce local."),
     (r"^tous les amphis", "Affiche tous les amphithéâtres de l'UPPA."),
     (r"^let \(supprimés\)", "Les 3 amphis du bâtiment Lettres, dont la suppression est étudiée."),
     (r"^deg \(accueil\)", "Les 5 amphis du bâtiment Droit, qui accueillent les cours reportés."),
@@ -2005,7 +2051,7 @@ def combined_template_dashboard(
     buttons = "".join(
         f'<button type="button" class="view-tab{" active" if index == 0 else ""}" data-view="{safe_text(key)}">{safe_text(label)}</button>'
         for index, (key, label) in enumerate(
-            (("synthese_v2", "Synthèse V2"), ("amphis", "Amphis"), ("reallocation", "Réaffectation globale"), ("sans_effectif", "Cours sans effectif"), ("reference", "Référence"), ("H1a", "H1a"), ("H1b", "H1b"), ("H1c", "H1c"), ("H2", "H2 (lissage)"), ("H3b", "H3b (lissage)"), ("surdimensionnement", "Surdimensionnement"))
+            (("conclusion", "Conclusion LET"), ("synthese_v2", "Synthèse V2"), ("amphis", "Amphis"), ("reallocation", "Réaffectation globale"), ("verification", "À vérifier"), ("sans_effectif", "Usages sans effectif"), ("reference", "Référence"), ("H1a", "H1a"), ("H1b", "H1b"), ("H1c", "H1c"), ("H2", "H2 (lissage)"), ("H3b", "H3b (lissage)"), ("surdimensionnement", "Surdimensionnement"))
         )
     )
     body = f"""<main><header><div><p>UPPA · Direction du Patrimoine · SSH</p><h1>Occupation des salles · dossier complet</h1><span>Référence 2025–2026, hypothèses H1a, H1b, H1c, comparaisons H2 et H3b, réaffectation globale</span></div><div class="stamp">Créé le {safe_text(created_at)}</div></header>
@@ -2283,12 +2329,6 @@ def build_parser() -> argparse.ArgumentParser:
         "--examens",
         default=DEFAULT_EXAM_PERIODS,
         help="Périodes d'examen AAAA-MM-JJ:AAAA-MM-JJ séparées par des virgules ; chaîne vide pour aucune.",
-    )
-    parser.add_argument(
-        "--effectifs-estimes",
-        action="store_true",
-        help="Estime l'effectif des séances sans EFFCALCU (même groupe, groupes frères, promotion parente) comme majorant ; "
-        "toujours marqué « estimé » et compté à part.",
     )
     parser.add_argument("--sortie", type=Path, default=Path(__file__).resolve().parent)
     parser.add_argument("--debut", help="Date ISO YYYY-MM-DD incluse.")
@@ -2911,6 +2951,7 @@ def simulate_global_reallocation(
     pool: dict[str, Room],
     ssh_names: set[str],
     active_dates: list[dt.date],
+    resolve_conflicts: bool = True,
 ) -> dict[str, Any]:
     """Réaffectation globale : chaque série de cours/TD SSH Pau mal dimensionnée va vers le plus petit local libre à toutes ses
     dates (mêmes jours et horaires). Les séries sont traitées par gaspillage décroissant et l'occupation est mise à jour après
@@ -2928,13 +2969,53 @@ def simulate_global_reallocation(
     def free(code: str, date: dt.date, start: int, end: int) -> bool:
         return all(not (start < other_end and other_start < end) for other_start, other_end, _ in occupied.get((code, date), []))
 
+    pool_list = sorted(pool.values(), key=lambda r: (r.capacity or 0, r.code))
+    moved: dict[str, Room] = {}
+    conflict_moved: dict[str, Room] = {}
+    conflict_pairs = 0
+    if resolve_conflicts:
+        # Étape 1 : relogement des séances en double réservation dans un local libre de capacité suffisante (mêmes jour et horaire).
+        scope_ids = {e["id"] for e in scope}
+        pairs = []
+        for (code, _date), items in room_events(events).items():
+            if code not in pool:
+                continue
+            for index, first in enumerate(items):
+                for second in items[index + 1:]:
+                    if second["start"] >= first["end"]:
+                        break
+                    if overlap(first, second):
+                        pairs.append((first, second))
+        conflict_pairs = len(pairs)
+        for first, second in pairs:
+            if first["id"] in moved or second["id"] in moved:
+                continue
+            movable = [e for e in (first, second) if e["id"] in scope_ids and not e.get("is_exam") and e["effect"] is not None]
+            for event in sorted(movable, key=lambda e: ("@" not in e["id"], e["effect"])):
+                current = rooms[event["room_code"]]
+                target = next(
+                    (r for r in sorted(pool_list, key=lambda r: (r.capacity or 0, r.building != current.building, r.code))
+                     if r.code != current.code and (r.capacity or 0) >= event["effect"] and free(r.code, event["date"], event["start"], event["end"])),
+                    None,
+                )
+                if target is None:
+                    continue
+                for slot in occupied[(current.code, event["date"])]:
+                    if slot[2] == event["id"]:
+                        occupied[(current.code, event["date"])].remove(slot)
+                        break
+                occupied[(target.code, event["date"])].append([event["start"], event["end"], event["id"]])
+                moved[event["id"]] = target
+                conflict_moved[event["id"]] = target
+                break
+
     series: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for event in candidates:
+        if event["id"] in conflict_moved:
+            continue
         series[(event["room_code"], event["subject"], event["type"], tuple(event["diplomas"]), event["date"].weekday(), event["start"], event["end"])].append(event)
 
-    pool_list = sorted(pool.values(), key=lambda r: (r.capacity or 0, r.code))
     series_rows: list[dict[str, Any]] = []
-    moved: dict[str, Room] = {}
     prepared = []
     for key, items in series.items():
         efforts = [e["effect"] for e in items]
@@ -2996,7 +3077,7 @@ def simulate_global_reallocation(
             dict(event, room_code=target.code, room_name=target.name, building=target.building, capacity=target.capacity,
                  room_kind=target.kind, realloc_from=event["room_code"])
         )
-    for event in candidates:
+    for event in candidates + [e for e in scope if e["id"] in conflict_moved and e["id"] not in candidate_ids]:
         target = moved.get(event["id"])
         session_rows.append(
             {
@@ -3007,7 +3088,7 @@ def simulate_global_reallocation(
                 "EFFECTIF": event["effect"] if event["effect"] is not None else "",
                 "LOCAL_PROPOSE": target.name if target else event["room_name"],
                 "CAPACITE_PROPOSEE": target.capacity if target else event["capacity"],
-                "STATUT": "réaffectée" if target else "inchangée",
+                "STATUT": ("déplacée (résolution de conflit)" if event["id"] in conflict_moved else "réaffectée") if target else "inchangée",
                 "HEURES": round(active_minutes(event) / 60, 2),
             }
         )
@@ -3078,6 +3159,8 @@ def simulate_global_reallocation(
         "amphi_rate_after": sum(after_occ[r.code]["rate"] for r in amphis) / len(amphis) if amphis else 0.0,
         "amphi_count": len(amphis),
         "fill_before": weighted_fill(events, known_ids), "fill_after": weighted_fill(final_events, known_ids),
+        "conflict_pairs": conflict_pairs, "conflict_moved_sessions": len(conflict_moved),
+        "conflict_moved_hours": sum(active_minutes(e) for e in events if e["id"] in conflict_moved) / 60,
         "over_n": len(over_rows), "pool_n": len(pool),
         "moved_estimated_sessions": sum(r["sessions"] for r in moved_series if r["estimated"]),
         "moved_estimated_hours": sum(r["hours"] for r in moved_series if r["estimated"]),
@@ -3273,6 +3356,419 @@ document.querySelectorAll('.rq').forEach(i=>i.addEventListener('input',e=>{{cons
     return html_document("Réaffectation selon les effectifs", created_at, body, BASE_CSS)
 
 
+# ---------------------------------------------------------------------------
+# V3 : qualification des usages sans effectif, points à vérifier, résultat après optimisation, conclusion
+# ---------------------------------------------------------------------------
+
+USAGE_ORDER = ["UTLA", "Enseignement SSH", "Examen SSH", "Autre usage interne", "Usage externe", "Réservation à identifier"]
+USAGE_HELP = {
+    "UTLA": "Université du temps libre (options « <UTLA> »). Public non étudiant, effectif non renseigné dans le planning.",
+    "Enseignement SSH": "Cours, TD ou CM dont l'intitulé est une matière, mais sans promotion renseignée. À rattacher à une promotion SSH.",
+    "Examen SSH": "Examen, contrôle continu, rattrapage, devoir ou tiers-temps (type ou intitulé). Contraintes d'accueil propres.",
+    "Autre usage interne": "Réunion, séminaire, présentation, chaire, tutorat, information : usage interne non pédagogique.",
+    "Usage externe": "Concours, association, colloque, forum ou prestataire extérieur à l'université.",
+    "Réservation à identifier": "Réservation générique (« Réservation de salles »…) : utilisateur et besoin à demander au gestionnaire de planning SSH.",
+}
+
+
+def classify_usage(event: dict[str, Any]) -> tuple[str, str, str]:
+    """Catégorie d'usage, niveau de confiance et base du classement, d'après les intitulés et informations disponibles."""
+    subject = (event["subject"] or "").casefold()
+    group = " | ".join(event["diplomas"])
+    course_type = (event["type"] or "").casefold()
+    if group.startswith("<UTLA>") or "utla" in subject:
+        return "UTLA", "élevée", "promotion <UTLA> ou intitulé UTLA"
+    if re.search(r"concours|association|colloque|externe|lyc[ée]e|rectorat|forum|salon|congr[èe]s|prestataire|location", subject):
+        return "Usage externe", "moyenne", "mot-clé de l'intitulé"
+    if re.search(r"chaire|r[ée]union|s[ée]minaire|pr[ée]sentation|information|tuteur|info sup|scuio|atelier|conf[ée]rence", subject):
+        return "Autre usage interne", "moyenne", "mot-clé de l'intitulé"
+    if event.get("is_exam") or re.search(r"tiers[- ]temps", subject):
+        return "Examen SSH", "moyenne", "type ou intitulé d'examen/contrôle"
+    if re.search(r"r[ée]servation|r[ée]sa\b", subject) or not subject.strip():
+        return "Réservation à identifier", "faible", "intitulé générique ou absent"
+    if course_type in REALLOC_TYPES:
+        return "Enseignement SSH", "moyenne", "type de cours (Cours/CM/TD/CTD), promotion non renseignée"
+    return "Enseignement SSH", "faible", "intitulé de matière, type et promotion non renseignés"
+
+
+def max_free_capacity(event: dict[str, Any], occupancy: dict[tuple[str, dt.date], list[dict[str, Any]]], recipients: list[Room]) -> int:
+    """Plus grande capacité d'un local d'accueil libre au créneau de la séance (mêmes jour et horaire)."""
+    best = 0
+    for room in recipients:
+        capacity = room.capacity or 0
+        if capacity > best and all(
+            not (event["start"] < other["end"] and other["start"] < event["end"]) for other in occupancy.get((room.code, event["date"]), [])
+        ):
+            best = capacity
+    return best
+
+
+def usage_free_capacities(
+    unknown_events: list[dict[str, Any]], scenarios: dict[str, dict[str, Any]], recipients_by_key: dict[str, list[Room]], keys: tuple[str, ...]
+) -> dict[str, dict[str, int]]:
+    out: dict[str, dict[str, int]] = {event["id"]: {} for event in unknown_events}
+    for key in keys:
+        occupancy = room_events(scenarios[key]["events"])
+        for event in unknown_events:
+            out[event["id"]][key] = max_free_capacity(event, occupancy, recipients_by_key[key])
+    return out
+
+
+def usage_rows(unknown_events: list[dict[str, Any]], free_caps: dict[str, dict[str, int]]) -> list[dict[str, Any]]:
+    rows = []
+    for event in sorted(unknown_events, key=lambda e: (e["date"], e["start"], e["room_name"])):
+        category, confidence, basis = classify_usage(event)
+        row = {
+            "ID_SEANCE": event["id"], "DATE": event["date"].isoformat(), "JOUR": WEEKDAYS_FR[event["date"].weekday()],
+            "HDEBUT": f"{event['start'] // 60:02d}:{event['start'] % 60:02d}", "HFIN": f"{event['end'] // 60:02d}:{event['end'] % 60:02d}",
+            "NOM_SAL": event["room_name"], "CAPACITE_LOCAL": event["capacity"], "TYPE": event["type"], "LIBELLE_MAT": event["subject"],
+            "NOM_DIP": " | ".join(event["diplomas"]), "CATEGORIE": category, "CONFIANCE": confidence, "BASE_CLASSEMENT": basis,
+            "HEURES_8H_18H": round(active_minutes(event) / 60, 2), "HEURES_COMPLETES": round(event["duration"] / 60, 2),
+        }
+        for key, cap in free_caps.get(event["id"], {}).items():
+            row[f"PLUS_GRAND_LOCAL_LIBRE_{key}"] = cap
+        row["EFFECTIF_A_RENSEIGNER"] = ""
+        rows.append(row)
+    return rows
+
+
+def usage_summary(rows: list[dict[str, Any]], keys: tuple[str, ...]) -> list[dict[str, Any]]:
+    summary = []
+    for category in USAGE_ORDER:
+        items = [r for r in rows if r["CATEGORIE"] == category]
+        if not items:
+            continue
+        caps = [r["CAPACITE_LOCAL"] for r in items if r["CAPACITE_LOCAL"]]
+        entry = {
+            "category": category, "n": len(items), "hours": sum(r["HEURES_8H_18H"] for r in items),
+            "full_hours": sum(r["HEURES_COMPLETES"] for r in items),
+            "rooms": ", ".join(f"{room} : {n}" for room, n in Counter(r["NOM_SAL"] for r in items).most_common()),
+            "cap_range": f"{min(caps)}–{max(caps)}" if caps else "", "help": USAGE_HELP[category],
+            "confidence": Counter(r["CONFIANCE"] for r in items).most_common(1)[0][0],
+        }
+        for key in keys:
+            for threshold in (50, 100, 150):
+                entry[f"{key}_{threshold}"] = sum(1 for r in items if r.get(f"PLUS_GRAND_LOCAL_LIBRE_{key}", 0) >= threshold)
+        summary.append(entry)
+    return summary
+
+
+def estimated_source_rows(
+    source_events: list[dict[str, Any]], scenarios: dict[str, dict[str, Any]], keys: tuple[str, ...]
+) -> list[dict[str, Any]]:
+    """Séances des amphis LET placées sur effectif estimé : à vérifier en priorité."""
+    rows = []
+    for event in source_events:
+        if not event.get("effect_estimated"):
+            continue
+        row = {
+            "ID_SEANCE": event["id"], "DATE": event["date"].isoformat(), "HDEBUT": f"{event['start'] // 60:02d}:{event['start'] % 60:02d}",
+            "HFIN": f"{event['end'] // 60:02d}:{event['end'] % 60:02d}", "AMPHI_LET": event["room_name"], "TYPE": event["type"],
+            "LIBELLE_MAT": event["subject"], "NOM_DIP": " | ".join(event["diplomas"]), "EFFECTIF_ESTIME": event["effect"],
+            "METHODE": event.get("effect_method", ""), "HEURES_8H_18H": round(active_minutes(event) / 60, 2),
+        }
+        in_conflict = False
+        for key in keys:
+            status = scenarios[key]["statuses"].get(event["id"], {})
+            row[f"LOCAL_{key}"] = status.get("destination", "")
+            room = next((r for r in scenarios[key]["placed"] if r["source_id"] == event["id"]), None) if status.get("destination") else None
+            row[f"CAPACITE_{key}"] = room["capacity"] if room else ""
+            row[f"STATUT_{key}"] = status.get("status", "")
+            in_conflict = in_conflict or status.get("status") == "place_avec_chevauchement"
+        weak = row["METHODE"].startswith("promotion parente")
+        row["PRIORITE"] = "haute" if (in_conflict or weak) else ("moyenne" if row["METHODE"].startswith("groupes frères") else "faible")
+        row["POURQUOI"] = ("effectif peu fiable (promotion entière) ; " if weak else "") + ("placée avec chevauchement dans une hypothèse ; " if in_conflict else "")
+        rows.append(row)
+    rows.sort(key=lambda r: ({"haute": 0, "moyenne": 1, "faible": 2}[r["PRIORITE"]], -r["HEURES_8H_18H"]))
+    return rows
+
+
+def unlocated_summary(unlocated: list[dict[str, Any]], ssh_names: set[str]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Séances SSH Pau sans salle dans l'export, susceptibles de concerner les amphis étudiés (selon l'effectif)."""
+    series: dict[tuple[Any, ...], dict[str, Any]] = {}
+    for item in unlocated:
+        probe = {"diplomas": sorted(item["diplomas"])}
+        if not item["diplomas"] or not event_is_ssh_pau(probe, ssh_names):
+            continue
+        effect = max(item["effects"]) if item["effects"] else None
+        key = (item["subject"], item["type"], " | ".join(sorted(item["diplomas"])), item["date"].weekday(), item["start"], item["end"])
+        entry = series.setdefault(
+            key, {"subject": item["subject"], "type": item["type"], "groups": key[2], "weekday": WEEKDAYS_FR[key[3]], "start": item["start"],
+                  "end": item["end"], "sessions": 0, "hours": 0.0, "effect": None, "exam": bool(item["is_exam"])},
+        )
+        entry["sessions"] += 1
+        entry["hours"] += clipped_minutes(item["start"], item["end"]) / 60
+        if effect is not None:
+            entry["effect"] = max(entry["effect"] or 0, effect)
+    rows = sorted(series.values(), key=lambda r: (-(r["effect"] or 0), -r["hours"]))
+    brackets = [("Effectif inconnu", None, None), ("Moins de 50", 1, 49), ("50 à 99", 50, 99), ("100 à 149", 100, 149), ("150 et plus", 150, 10**6)]
+    table = []
+    for label, low, high in brackets:
+        items = [r for r in rows if (r["effect"] is None if low is None else (r["effect"] is not None and low <= r["effect"] <= high))]
+        table.append(
+            {"bracket": label, "series": len(items), "sessions": sum(r["sessions"] for r in items), "hours": sum(r["hours"] for r in items),
+             "exam_sessions": sum(r["sessions"] for r in items if r["exam"]),
+             "amphi_risk": "oui" if low is not None and low >= 100 else ("à qualifier" if low is None else "non")}
+        )
+    return table, rows
+
+
+def capacity_anomaly_rows(
+    events: list[dict[str, Any]], rooms: dict[str, Room], scenarios: dict[str, dict[str, Any]], recipients_by_key: dict[str, list[Room]],
+    keys: tuple[str, ...],
+) -> list[dict[str, Any]]:
+    """Locaux de report dont la capacité paraît douteuse (effectif observé supérieur ou très inférieur) et séances concernées."""
+    codes = {r.code for key in keys for r in recipients_by_key[key]} | {r.code for r in rooms.values() if r.building == "LET" and r.kind == "amphi"}
+    seen: dict[str, list[int]] = defaultdict(list)
+    for event in events:
+        if event["room_code"] in codes and event["effect"] is not None and not event.get("effect_estimated"):
+            seen[event["room_code"]].append(event["effect"])
+    rows = []
+    for code in sorted(codes, key=lambda c: (rooms[c].building, rooms[c].name)):
+        room = rooms[code]
+        capacity = room.capacity or 0
+        values = seen.get(code, [])
+        over = sum(1 for v in values if v > capacity)
+        top = max(values) if values else 0
+        flags = []
+        if capacity <= 0:
+            flags.append("capacité absente ou nulle")
+        if over:
+            flags.append(f"{over} séances avec effectif > capacité (max {top}) : capacité peut-être sous-évaluée")
+        if values and capacity >= 3 * top and capacity >= 100:
+            flags.append(f"capacité au moins 3 fois l'effectif maximal observé ({top}) : à confirmer")
+        if not flags:
+            continue
+        row = {"LOCAL": room.name, "BATIMENT": room.building, "CAPACITE": capacity, "EFFECTIF_MAX_OBSERVE": top, "ANOMALIE": " ; ".join(flags)}
+        for key in keys:
+            placed = [p for p in scenarios[key]["placed"] if p["room_code"] == code]
+            row[f"SEANCES_LET_{key}"] = len(placed)
+            row[f"DONT_JUSTES_{key}"] = sum(1 for p in placed if p["effect"] is not None and capacity and p["effect"] >= 0.8 * capacity)
+        rows.append(row)
+    return rows
+
+
+def post_optimisation_rows(
+    scenarios: dict[str, dict[str, Any]], reallocs: dict[str, dict[str, Any]], recipients_by_key: dict[str, list[Room]],
+    source_events: list[dict[str, Any]], hyp_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Résultat après réaffectation : chaque séance reportée est classée une seule fois (aucun double comptage)."""
+    by_hyp = {r["key"]: r for r in hyp_rows}
+    sources = {e["id"]: e for e in source_events}
+    output = []
+    for key, result in scenarios.items():
+        codes = {room.code for room in recipients_by_key[key]}
+        final = reallocs[key]["events"]
+        remaining = find_conflicts(final, codes)
+        persistent_ids: set[str] = set()
+        uncertain_ids: set[str] = set()
+        persistent_min = uncertain_min = persistent_pairs = uncertain_pairs = other_pairs = 0
+        suffix = f"@{key}"
+        for conflict in remaining:
+            minutes = max(0, min(conflict["end1"], conflict["end2"], 1080) - max(conflict["start1"], conflict["start2"], 480))
+            if not (conflict["id1"].endswith(suffix) or conflict["id2"].endswith(suffix)):
+                other_pairs += 1
+            if conflict["unc1"] or conflict["unc2"]:
+                uncertain_pairs += 1
+                uncertain_min += minutes
+                uncertain_ids |= {conflict["id1"], conflict["id2"]}
+            else:
+                persistent_pairs += 1
+                persistent_min += minutes
+                persistent_ids |= {conflict["id1"], conflict["id2"]}
+        buckets: dict[str, list[float]] = defaultdict(lambda: [0, 0.0])
+        for source_id, status in result["statuses"].items():
+            event = sources[source_id]
+            hours = active_minutes(event) / 60
+            kind = status["status"]
+            placed_id = f"{source_id}{suffix}"
+            if kind == "effectif_inconnu":
+                name = "not_placed_no_effect"
+            elif kind in {"sans_solution", "non_couvert"}:
+                name = "not_placed_other"
+            elif placed_id in persistent_ids:
+                name = "conflict_persistent"
+            elif placed_id in uncertain_ids:
+                name = "conflict_uncertain"
+            else:
+                name = "ok_estimated" if status.get("estimated") else "ok_known"
+            buckets[name][0] += 1
+            buckets[name][1] += hours
+        stats = reallocs[key]["stats"]
+        row: dict[str, Any] = {
+            "key": key, "label": HYPOTHESIS_LABELS.get(key, key),
+            "before_overlap_sessions": by_hyp[key]["overlap_n"], "before_overlap_hours": round(by_hyp[key]["overlap_h"], 1),
+            "before_pairs": len(result["conflicts"]),
+            "moved_for_conflict_sessions": stats["conflict_moved_sessions"], "moved_for_conflict_hours": round(stats["conflict_moved_hours"], 1),
+            "persistent_pairs": persistent_pairs, "persistent_hours": round(persistent_min / 60, 1),
+            "uncertain_pairs": uncertain_pairs, "uncertain_hours": round(uncertain_min / 60, 1),
+            "other_pairs": other_pairs, "total": by_hyp[key]["total_n"], "total_hours": round(by_hyp[key]["total_h"], 1),
+        }
+        for name in ("ok_known", "ok_estimated", "conflict_persistent", "conflict_uncertain", "not_placed_no_effect", "not_placed_other"):
+            row[f"{name}_n"], row[f"{name}_h"] = int(buckets[name][0]), round(buckets[name][1], 1)
+        output.append(row)
+    return output
+
+
+def verdict_rows(post: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Conclusion par scénario : horaires inchangés après optimisation, lissage complémentaire, ou conditions à lever."""
+    by_key = {r["key"]: r for r in post}
+    twins = {"H1a": "H2", "H1b": "H3b", "H1c": None}
+    rows = []
+    for key in ("H1a", "H1b", "H1c"):
+        row = by_key[key]
+        twin = by_key.get(twins[key]) if twins[key] else None
+        unchanged = row["conflict_persistent_n"] == 0
+        smoothing = None if twin is None else (twin["persistent_pairs"] + twin["uncertain_pairs"] == 0)
+        if unchanged:
+            base = "Possible à horaires inchangés après optimisation des locaux (séances à effectif connu)"
+        elif smoothing:
+            base = f"Possible avec lissage complémentaire (simulation {twins[key]}) ; des conflits subsistent à horaires inchangés"
+        elif smoothing is None:
+            base = "Non démontré à horaires inchangés ; lissage de cette hypothèse non simulé"
+        else:
+            base = "Non démontré, même avec lissage"
+        conditions = []
+        if row["not_placed_no_effect_n"] or row["not_placed_other_n"]:
+            conditions.append(
+                f"relogement de {row['not_placed_no_effect_n'] + row['not_placed_other_n']} séances ({fr_number(row['not_placed_no_effect_h'] + row['not_placed_other_h'], 0)} h) sans effectif ou sans solution"
+            )
+        if row["ok_estimated_n"] or row["conflict_uncertain_n"]:
+            conditions.append(f"vérification de {row['ok_estimated_n'] + row['conflict_uncertain_n']} séances placées sur effectif estimé")
+        if not unchanged:
+            conditions.append(f"résolution de {row['conflict_persistent_n']} séances restant en conflit")
+        rows.append(
+            {"key": key, "label": row["label"], "horaires_inchanges": "oui" if unchanged else "non",
+             "lissage": "sans objet" if unchanged else ("non simulé" if smoothing is None else ("oui" if smoothing else "non")),
+             "verdict": base, "conditions": " ; ".join(conditions) or "aucune condition identifiée"}
+        )
+    return rows
+
+
+def verdict_csv_rows(post: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "HYPOTHESE": r["key"], "DESCRIPTION": r["label"], "SEANCES_A_REPORTER": r["total"], "HEURES_A_REPORTER": r["total_hours"],
+            "CONFLITS_AVANT_SEANCES": r["before_overlap_sessions"], "CONFLITS_AVANT_HEURES": r["before_overlap_hours"],
+            "RESOLUS_PAR_RELOGEMENT_SEANCES": r["moved_for_conflict_sessions"], "RESOLUS_PAR_RELOGEMENT_HEURES": r["moved_for_conflict_hours"],
+            "PLACEES_SANS_CONFLIT_EFFECTIF_CONNU_SEANCES": r["ok_known_n"], "PLACEES_SANS_CONFLIT_EFFECTIF_CONNU_HEURES": r["ok_known_h"],
+            "PLACEES_SANS_CONFLIT_EFFECTIF_ESTIME_SEANCES": r["ok_estimated_n"], "PLACEES_SANS_CONFLIT_EFFECTIF_ESTIME_HEURES": r["ok_estimated_h"],
+            "CONFLIT_PERSISTANT_SEANCES": r["conflict_persistent_n"], "CONFLIT_PERSISTANT_HEURES": r["conflict_persistent_h"],
+            "CONFLIT_INCERTAIN_SEANCES": r["conflict_uncertain_n"], "CONFLIT_INCERTAIN_HEURES": r["conflict_uncertain_h"],
+            "NON_PLACEES_SANS_EFFECTIF_SEANCES": r["not_placed_no_effect_n"], "NON_PLACEES_SANS_EFFECTIF_HEURES": r["not_placed_no_effect_h"],
+            "NON_PLACEES_AUTRE_SEANCES": r["not_placed_other_n"], "NON_PLACEES_AUTRE_HEURES": r["not_placed_other_h"],
+            "CONFLITS_PERSISTANTS_MOMENTS": r["persistent_pairs"], "CONFLITS_PERSISTANTS_HEURES_DOUBLEES": r["persistent_hours"],
+            "CONFLITS_INCERTAINS_MOMENTS": r["uncertain_pairs"], "CONFLITS_INCERTAINS_HEURES_DOUBLEES": r["uncertain_hours"],
+            "CONFLITS_SANS_SEANCE_LET": r["other_pairs"],
+        }
+        for r in post
+    ]
+
+
+def conclusion_html(
+    created_at: str, post: list[dict[str, Any]], verdicts: list[dict[str, Any]], schedule: dict[str, Any], last_date: dt.date,
+    estimated_hours: float, estimated_n: int, unlocated_tbl: list[dict[str, Any]], anomalies_n: int, estimates_on: bool,
+) -> str:
+    nb = lambda n, h: f"{fr_number(n, 0)} · {fr_number(h, 0)} h"
+    by_key = {r["key"]: r for r in post}
+    verdict_table = sortable_table(
+        ["Scénario", "Horaires inchangés après optimisation", "Lissage complémentaire", "Conclusion", "Conditions à lever"],
+        [[f"{v['key']} : {v['label']}", v["horaires_inchanges"], v["lissage"], v["verdict"], v["conditions"]] for v in verdicts],
+    )
+    cols = ["Hypothèse", "Séances à reporter", "En conflit avant (séances · h)", "Relogées pour résoudre un conflit", "Placées sans conflit, effectif connu",
+            "Placées sans conflit, effectif estimé", "Restent en conflit (effectif connu)", "Restent en conflit (effectif incertain)",
+            "Non placées : sans effectif", "Non placées : sans solution ou non couvertes"]
+    rows = []
+    for r in post:
+        rows.append(
+            [r["key"], nb(r["total"], r["total_hours"]), nb(r["before_overlap_sessions"], r["before_overlap_hours"]),
+             nb(r["moved_for_conflict_sessions"], r["moved_for_conflict_hours"]), nb(r["ok_known_n"], r["ok_known_h"]), nb(r["ok_estimated_n"], r["ok_estimated_h"]),
+             nb(r["conflict_persistent_n"], r["conflict_persistent_h"]), nb(r["conflict_uncertain_n"], r["conflict_uncertain_h"]),
+             nb(r["not_placed_no_effect_n"], r["not_placed_no_effect_h"]), nb(r["not_placed_other_n"], r["not_placed_other_h"])]
+        )
+    moments = sortable_table(
+        ["Hypothèse", "Moments en double qui persistent (effectif connu)", "Heures doublées", "Moments en double incertains (effectif estimé)", "Heures doublées", "Moments sans séance LET"],
+        [[r["key"], r["persistent_pairs"], fr_number(r["persistent_hours"], 1), r["uncertain_pairs"], fr_number(r["uncertain_hours"], 1), r["other_pairs"]] for r in post], 1,
+    )
+    unknown_n = unlocated_tbl and sum(t["sessions"] for t in unlocated_tbl if t["amphi_risk"] in ("oui", "à qualifier"))
+    demontre = [
+        f"Les séances à effectif connu des trois amphis LET peuvent être relogées sur les locaux d'accueil de chaque hypothèse : la capacité est vérifiée pour chacune.",
+        f"Après optimisation des locaux (relogement des séances en conflit dans un local libre de capacité suffisante, au même jour et à la même heure), il reste {fr_number(by_key['H1a']['conflict_persistent_n'], 0)} séances à effectif connu en conflit en H1a, {fr_number(by_key['H1b']['conflict_persistent_n'], 0)} en H1b et {fr_number(by_key['H1c']['conflict_persistent_n'], 0)} en H1c.",
+        "Le lissage (H2, H3b) supprime tous les chevauchements des séances à effectif connu en déplaçant des horaires, sans contrôle de la disponibilité des enseignants.",
+    ]
+    verifier = [
+        f"{fr_number(estimated_n, 0)} séances LET placées sur effectif estimé ({fr_number(estimated_hours, 0)} h) : effectif réel à confirmer, liste priorisée dans « À vérifier ».",
+        f"Usages sans effectif : {fr_number(by_key['H1a']['not_placed_no_effect_n'], 0)} séances ({fr_number(by_key['H1a']['not_placed_no_effect_h'], 0)} h) qualifiées par intitulé (UTLA, réservations, enseignements, usages internes) mais dont l'effectif et l'annulation éventuelle ne sont pas confirmés ; leurs heures restent à reloger.",
+        f"Séances sans salle dans l'export susceptibles de concerner les amphis étudiés : {fr_number(unknown_n or 0, 0)} séances SSH Pau d'effectif supérieur à 100 ou inconnu.",
+        f"Anomalies de capacité des locaux de report : {anomalies_n} locaux à contrôler.",
+        f"Examens de mai-juin : l'export s'arrête le {last_date.strftime('%d/%m/%Y')} ; aucun export couvrant la fin de l'année n'a été trouvé. Les périodes d'examen ne sont donc pas couvertes : la conclusion est assortie de cette réserve.",
+    ]
+    conditions = [
+        "Lever les besoins non pris en charge : confirmer l'effectif, la capacité nécessaire ou l'annulation des séances sans effectif ; tant que ce n'est pas fait, leurs heures restent à reloger.",
+        "Pour toute séance restant en conflit : accepter un lissage ou un changement de local validé avec les composantes concernées.",
+        "Vérifier les séances placées sur effectif estimé, en commençant par celles de priorité haute.",
+        "Disposer d'un export couvrant mai-juin pour vérifier la capacité d'accueil des examens.",
+    ]
+    practical = [
+        "Mutualisation des locaux : accord des composantes propriétaires (Droit, Sciences, autres) pour l'usage de leurs amphis et salles.",
+        "Équipements : sonorisation, visioprojection, enregistrement, accessibilité des locaux de report.",
+        "Déplacements : temps de trajet entre bâtiments pour les enseignants et les étudiants enchaînant deux cours.",
+        "Disponibilité des enseignants en cas de lissage (non contrôlée par le modèle, qui ne dispose pas des enseignants).",
+        "Capacité adaptée aux examens : les examens exigent un espacement et une surveillance que la capacité nominale ne représente pas.",
+    ]
+    ul = lambda items: "<ul>" + "".join(f"<li>{safe_text(t)}</li>" for t in items) + "</ul>"
+    body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Peut-on supprimer les trois amphis LET ?</h1><p class="muted">Conclusion par scénario. Créé le {safe_text(created_at)}</p></div></header>
+<section class="card"><h2>Réponse par scénario</h2>{verdict_table}<p class="muted">« Horaires inchangés » : après relogement des séances en conflit dans un local libre au même jour et à la même heure. Le lissage (H2, H3b) est une simulation séparée, avant optimisation globale.</p></section>
+<section class="card"><h2>Résultat après optimisation : chaque séance reportée est comptée une seule fois</h2>
+<p class="muted">Séances et heures (08h-18h). Les six colonnes de droite s'additionnent au total des séances à reporter, sans double comptage.</p>{sortable_table(cols, rows)}
+<h3>Moments en double qui restent</h3>{moments}</section>
+<section class="card"><h2>Ce qui est démontré</h2>{ul(demontre)}</section>
+<section class="card"><h2>Ce qui reste à vérifier</h2>{ul(verifier)}</section>
+<section class="card"><h2>Conditions nécessaires à la suppression</h2>{ul(conditions)}</section>
+<section class="card"><h2>Validations pratiques à conduire avec les gestionnaires</h2>{ul(practical)}</section>
+<script>{SORT_SCRIPT}</script></main>"""
+    return html_document("Conclusion LET", created_at, body, BASE_CSS)
+
+
+def verification_html(
+    created_at: str, estimated_rows: list[dict[str, Any]], unlocated_tbl: list[dict[str, Any]], unlocated_rows: list[dict[str, Any]],
+    anomalies: list[dict[str, Any]], keys: tuple[str, ...],
+) -> str:
+    prio = Counter(r["PRIORITE"] for r in estimated_rows)
+    prio_h: dict[str, float] = defaultdict(float)
+    for r in estimated_rows:
+        prio_h[r["PRIORITE"]] += r["HEURES_8H_18H"]
+    prio_table = sortable_table(
+        ["Priorité", "Séances", "Heures"], [[p, prio[p], fr_number(prio_h[p], 1)] for p in ("haute", "moyenne", "faible") if prio[p]], 1
+    )
+    est_rows = [
+        [r["PRIORITE"], r["DATE"], r["AMPHI_LET"], r["LIBELLE_MAT"], r["NOM_DIP"][:60], r["EFFECTIF_ESTIME"], r["METHODE"], fr_number(r["HEURES_8H_18H"], 1),
+         f"{r['LOCAL_H1a']} ({r['CAPACITE_H1a']})" if r.get("LOCAL_H1a") else "", r["POURQUOI"]]
+        for r in estimated_rows[:200]
+    ]
+    unlocated_table = sortable_table(
+        ["Effectif du groupe", "Séries", "Séances", "Heures (8h-18h)", "dont examens", "Risque pour les amphis"],
+        [[t["bracket"], t["series"], t["sessions"], fr_number(t["hours"], 0), t["exam_sessions"], t["amphi_risk"]] for t in unlocated_tbl], 1,
+    )
+    top_unlocated = sortable_table(
+        ["Matière", "Type", "Groupes", "Jour", "Horaire", "Séances", "Effectif max"],
+        [[r["subject"], r["type"], r["groups"][:60], r["weekday"], f"{r['start'] // 60:02d}:{r['start'] % 60:02d}", r["sessions"], r["effect"] or "inconnu"]
+         for r in unlocated_rows[:40]], 5,
+    )
+    anomaly_cols = ["Local", "Bât.", "Capacité", "Effectif max observé", "Anomalie"] + [f"Séances LET {k} (dont justes)" for k in keys]
+    anomaly_table = sortable_table(
+        anomaly_cols,
+        [[a["LOCAL"], a["BATIMENT"], a["CAPACITE"], a["EFFECTIF_MAX_OBSERVE"], a["ANOMALIE"]] + [f"{a[f'SEANCES_LET_{k}']} ({a[f'DONT_JUSTES_{k}']})" for k in keys] for a in anomalies], 2,
+    )
+    body = f"""<main><header><div><p class="eyebrow">UPPA · Direction du Patrimoine · SSH</p><h1>Points à vérifier en priorité</h1><p class="muted">Cas déterminants pour la conclusion. Créé le {safe_text(created_at)}</p></div></header>
+<section class="card"><h2>1. Séances LET placées sur effectif estimé</h2><p class="muted">Priorité haute : effectif peu fiable (promotion entière) ou séance en conflit dans une hypothèse. 200 premières lignes ; liste complète dans le CSV 23.</p>{prio_table}
+{sortable_table(["Priorité", "Date", "Amphi LET", "Matière", "Groupe", "Effectif estimé", "Méthode", "Heures", "Local H1a (capacité)", "Pourquoi"], est_rows, 5) if est_rows else "<p>Aucune (option --effectifs-estimes non activée).</p>"}</section>
+<section class="card"><h2>2. Séances SSH Pau sans salle dans l'export</h2><p class="muted">Ces séances n'ont aucun code de salle : si l'une d'elles se déroule en réalité dans un amphi LET ou DEG, l'occupation est sous-estimée. Risque pour les amphis : effectif de 100 ou plus (ou inconnu). Liste complète dans le CSV 24.</p>{unlocated_table}<h3>Séries au plus grand effectif</h3>{top_unlocated}</section>
+<section class="card"><h2>3. Anomalies de capacité des locaux de report</h2><p class="muted">Un local dont la capacité est sous-évaluée peut accueillir plus de séances que prévu ; surévaluée, il peut en accueillir moins. « Justes » = séances LET dont l'effectif dépasse 80 % de la capacité.</p>{anomaly_table if anomalies else "<p>Aucune anomalie détectée.</p>"}</section>
+<script>{SORT_SCRIPT}</script></main>"""
+    return html_document("Points à vérifier", created_at, body, BASE_CSS)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -3337,22 +3833,18 @@ def main(argv: list[str] | None = None) -> int:
         if not active_dates:
             raise AnalysisError("Aucun jour pédagogique ouvré ne reste après les filtres.")
         events = schedule["events"]
+        global ROOMS_WITH_SESSIONS
+        ROOMS_WITH_SESSIONS = {event["room_code"] for event in events}  # salles sans séance exclues des tableaux de bord
         source_codes = {room.code for room in rooms.values() if room.building == "LET" and room.kind == "amphi"}
         source_events = [event for event in events if event["room_code"] in source_codes]
         schedule["missing_effect"] = sum(event["effect"] is None for event in events)
         estimate_methods: Counter[str] = Counter()
-        if args.effectifs_estimes:
-            # Estimations jamais mélangées aux effectifs du planning : marquées « estimé » partout et comptées à part.
-            events, estimate_methods = estimate_missing_effects(events, promotion_effects)
-            schedule["events"] = events
+        # Aucun effectif n'est estimé : seuls les effectifs réels du planning (EFFCALCU) sont utilisés.
         source_events = [event for event in events if event["room_code"] in source_codes]
         estimated_count = sum(1 for event in source_events if event.get("effect_estimated"))
         schedule["estimated_sources"] = estimated_count
         schedule["estimated_all"] = sum(estimate_methods.values())
         schedule["estimate_methods"] = dict(estimate_methods)
-        if args.effectifs_estimes:
-            detail = ", ".join(f"{method} : {count}" for method, count in estimate_methods.items()) or "aucune"
-            print(f"Effectifs estimés : {schedule['estimated_all']} séances localisées ({detail}) ; {estimated_count} dans les amphis LET à reporter.")
         schedule["missing_effect_source"] = sum(event["effect"] is None for event in source_events)
         schedule["unrecognized_source_promotions"] = sorted(
             {diploma for event in source_events for diploma in event["diplomas"] if diploma not in promotion_names},
@@ -3528,7 +4020,7 @@ def main(argv: list[str] | None = None) -> int:
         session_headers = list(realloc["sessions"][0]) if realloc["sessions"] else ["ID_SEANCE"]
         room_headers = ["code", "room", "building", "kind", "capacity", "hours_before", "rate_before", "hours_after", "rate_after", "fill_before", "fill_after"]
         over_headers = ["DATE", "LOCAL", "BATIMENT", "CAPACITE", "EFFECTIF", "DEPASSEMENT", "TYPE", "LIBELLE_MAT", "NOM_DIP", "EXAMEN"]
-        v2_summary = synthesis_v2_html(created_at, hyp_rows, realloc, schedule, active_dates, exam_periods, bool(args.effectifs_estimes), reallocs)
+        v2_summary = synthesis_v2_html(created_at, hyp_rows, realloc, schedule, active_dates, exam_periods, False, reallocs)
         realloc_labels = {"Référence": "Situation actuelle (sans report)", **{k: f"Après {k} : {HYPOTHESIS_LABELS[k]}" for k in scenarios}}
         v2_realloc = reallocation_html(created_at, reallocs, realloc_labels)
         for key, item in reallocs.items():
@@ -3548,16 +4040,41 @@ def main(argv: list[str] | None = None) -> int:
         )
         (run_directory / f"16_amphis_{stamp}.html").write_text(amphis_page, encoding="utf-8")
         dashboard_pages["amphis"] = amphis_page
-        unknown_rows = unknown_effect_rows(source_events)
-        unknown_csv = run_directory / f"17_cours_sans_effectif_{stamp}.csv"
-        write_csv(
-            unknown_csv,
-            ["ID_SEANCE", "DATE", "JOUR", "HDEBUT", "HFIN", "NOM_SAL", "TYPE", "LIBELLE_MAT", "NOM_DIP", "ORIGINE", "HEURES", "EFFECTIF_A_RENSEIGNER"],
-            unknown_rows,
-        )
-        unknown_page = unknown_effect_html(created_at, unknown_rows, schedule.get("estimated_sources", 0), len(source_events))
-        (run_directory / f"17_cours_sans_effectif_{stamp}.html").write_text(unknown_page, encoding="utf-8")
+        keys3 = ("H1a", "H1b", "H1c")
+        unknown_events = [e for e in source_events if e["effect"] is None]
+        free_caps = usage_free_capacities(unknown_events, scenarios, recipients_by_key, keys3)
+        u_rows = usage_rows(unknown_events, free_caps)
+        u_summary = usage_summary(u_rows, keys3)
+        unknown_csv = run_directory / f"17_usages_sans_effectif_{stamp}.csv"
+        write_csv(unknown_csv, list(u_rows[0]) if u_rows else ["ID_SEANCE"], u_rows)
+        unknown_page = usage_html(created_at, u_rows, u_summary, schedule.get("estimated_sources", 0), len(source_events), keys3)
+        (run_directory / f"17_usages_sans_effectif_{stamp}.html").write_text(unknown_page, encoding="utf-8")
         dashboard_pages["sans_effectif"] = unknown_page
+
+        est_rows = estimated_source_rows(source_events, scenarios, keys3)
+        if est_rows:
+            write_csv(run_directory / f"23_verification_effectifs_estimes_LET_{stamp}.csv", list(est_rows[0]), est_rows)
+        unlocated_tbl, unlocated_rows = unlocated_summary(schedule["unlocated"], ssh_pau_names)
+        write_csv(
+            run_directory / f"24_seances_sans_salle_SSH_Pau_{stamp}.csv", ["subject", "type", "groups", "weekday", "start", "end", "sessions", "hours", "effect", "exam"],
+            unlocated_rows,
+        )
+        anomalies_cap = capacity_anomaly_rows(events, rooms, scenarios, recipients_by_key, keys3)
+        if anomalies_cap:
+            write_csv(run_directory / f"25_anomalies_capacite_{stamp}.csv", list(anomalies_cap[0]), anomalies_cap)
+        post = post_optimisation_rows(scenarios, reallocs, recipients_by_key, source_events, hyp_rows)
+        verdicts = verdict_rows(post)
+        write_csv(run_directory / f"26_apres_optimisation_{stamp}.csv", list(verdict_csv_rows(post)[0]), verdict_csv_rows(post))
+        write_csv(run_directory / f"27_conclusion_scenarios_{stamp}.csv", list(verdicts[0]), verdicts)
+        est_hours = sum(r["HEURES_8H_18H"] for r in est_rows)
+        conclusion_page = conclusion_html(
+            created_at, post, verdicts, schedule, max(active_dates), est_hours, len(est_rows), unlocated_tbl, len(anomalies_cap), False
+        )
+        verification_page = verification_html(created_at, est_rows, unlocated_tbl, unlocated_rows, anomalies_cap, keys3)
+        (run_directory / f"27_conclusion_{stamp}.html").write_text(conclusion_page, encoding="utf-8")
+        (run_directory / f"23_a_verifier_{stamp}.html").write_text(verification_page, encoding="utf-8")
+        dashboard_pages["conclusion"] = conclusion_page
+        dashboard_pages["verification"] = verification_page
         final_dashboard = run_directory / f"08_dashboard_complet_{stamp}.html"
         final_dashboard.write_text(
             combined_template_dashboard(

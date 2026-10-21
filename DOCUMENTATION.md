@@ -107,7 +107,7 @@ Le programme vérifie à chaque exécution que **les heures sont conservées** :
 
 L'effectif de chaque séance est `EFFCALCU`. Il n'est **jamais inventé** : s'il manque, la séance est signalée `effectif_inconnu` et n'est pas reportée. Ses heures disparaissent donc des salles d'accueil dans les simulations.
 
-L'option `--effectifs-estimes` est la seule exception. Pour les séances de la forme « `<Promotion>groupe` », elle retient l'effectif de la promotion parente dans `EXP_PROMOTION` comme **majorant** (borne haute). Cette estimation s'est révélée supérieure ou égale à l'effectif réel dans 96 % des séances testées. Les séances concernées sont marquées « estimé » dans les CSV et dans le dashboard. Les classements et la référence n'utilisent jamais ces estimations.
+Aucune estimation n'est faite : seules les données réelles sont utilisées. Les séances sans effectif restent sans effectif et sont qualifiées dans l'onglet « Usages sans effectif ».
 
 ### 3.6 Locaux surdimensionnés
 
@@ -136,9 +136,6 @@ Depuis le dossier du projet :
 # Analyse standard
 .venv\Scripts\python analyse_occupation_uppa.py
 
-# Avec estimation des effectifs manquants (à mentionner si vous présentez les résultats)
-.venv\Scripts\python analyse_occupation_uppa.py --effectifs-estimes
-
 # Test automatique du programme sur des données synthétiques
 .venv\Scripts\python analyse_occupation_uppa.py --self-test
 ```
@@ -158,7 +155,6 @@ Chaque exécution crée un **nouveau dossier** `resultats_AAAAMMJJ_HHMMSS_xxxxxx
 | `--examens` | Périodes d'examen, même format | 5-17 janvier et 18 mai-30 juin 2026 |
 | `--debut`, `--fin` | Limiter l'analyse à une période (`AAAA-MM-JJ`) | tout l'export |
 | `--exclure-semaines` | Semaines ISO à exclure (`43,52,1`) | aucune |
-| `--effectifs-estimes` | Estimer les effectifs manquants (voir 3.5) | désactivé |
 | `--modele-effectifs` | Écrit la liste des promotions à renseigner puis s'arrête | désactivé |
 
 **Réutiliser pour une autre année** : changez les fichiers dans `BDD/` et passez les nouvelles dates à `--fermetures` et `--examens`. Aucune modification du code n'est nécessaire. Le calcul des jours fériés couvre les années 2025 et 2026 : pour une autre année, adaptez la fonction correspondante.
@@ -286,11 +282,13 @@ Fichiers : `19_reaffectation_globale.html` (page), `19_reaffectation_avant_apres
 
 Dans le dashboard, passer la souris sur le libellé d'un indicateur (titre de colonne, chiffre clé, titre de section, bouton de période) affiche une explication. Les textes sont dans `INDICATOR_TIPS` du script ; pour en ajouter un, ajoutez un couple (motif, explication).
 
-### 9.5 Retrouver les effectifs manquants (option `--effectifs-estimes`)
+### 9.5 Effectifs manquants
 
-Les séances sans `EFFCALCU` ne reçoivent jamais d'effectif « constaté ». Avec l'option, le script estime un **majorant** à partir des autres données du planning, dans cet ordre :
-1. **Même groupe** : plus grand effectif de ses autres séances. Contrôle sur 42 052 séances : supérieur ou égal à l'effectif réel dans 99 % des cas.
-2. **Groupes frères** (« <Promotion><sous-ensemble>… ») : plus grand effectif connu. 83 % des cas.
-3. **Promotion parente** dans `EXP_PROMOTION` : environ 96 % des cas.
+L'estimation d'effectifs (ancienne option `--effectifs-estimes`) a été supprimée : le script ne travaille que sur des données réelles. Compter les étudiants d'`EXP_ETUDIANT` par promotion n'a pas été retenu : le comptage est inférieur à l'effectif réel dans la plupart des cas.
 
-Les séances concernées sont marquées « estimé » partout (CSV, tableaux, dashboard), comptées à part, et leurs heures restent dans le besoin non résolu. Les estimations ne servent jamais à signaler un dépassement de capacité. Compter les étudiants d'`EXP_ETUDIANT` par promotion n'a pas été retenu : le comptage est inférieur à l'effectif réel dans la plupart des cas.
+## 10. Finalisation : conclusion sur la suppression des 3 amphis LET
+
+- **Usages sans effectif** (onglet « Usages sans effectif », CSV 17) : les séances sans effectif sont qualifiées par intitulé en UTLA, enseignements SSH, examens SSH, autres usages internes, usages externes ou réservations à identifier. Elles restent à reloger tant que leur annulation n'est pas confirmée ; le tableau indique, pour chaque hypothèse, le plus grand local libre au même créneau (donc l'effectif maximal relogeable).
+- **Points à vérifier** (onglet « À vérifier », CSV 23, 24, 25) : séances LET placées sur effectif estimé (priorisées), séances SSH Pau sans salle dans l'export, anomalies de capacité des locaux de report.
+- **Après optimisation** (onglet « Conclusion LET », CSV 26 et 27) : la réaffectation commence par reloger les séances en double réservation dans un local libre de capacité suffisante (même jour, même heure). Chaque séance reportée est ensuite classée une seule fois : placée sans conflit (effectif connu ou estimé), en conflit persistant, en conflit incertain, non placée sans effectif, non placée autre.
+- **Couverture** : aucun export au-delà du 30 avril 2026 n'a été trouvé (les extractions « au 07.09 » trouvées dans d'autres dossiers concernent 2026-2027). La réserve sur les examens de mai-juin est maintenue dans la conclusion.
