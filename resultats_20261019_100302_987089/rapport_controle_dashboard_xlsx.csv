@@ -1,0 +1,305 @@
+﻿onglet;élément;HTML;Excel;écart;statut
+Conclusion LET;H1b · À reporter (séances);1215.0;1215;0.0;OK
+Conclusion LET;H1b · À reporter (heures);1794.0;1793.8;-0.20000000000004547;OK
+Conclusion LET;H1b · En conflit avant (séances);204.0;204;0.0;OK
+Conclusion LET;H1b · En conflit avant (heures);309.0;309.3;0.30000000000001137;OK
+Conclusion LET;H1b · Relogées (séances);201.0;201;0.0;OK
+Conclusion LET;H1b · Relogées (heures);301.0;301.3;0.30000000000001137;OK
+Conclusion LET;H1b · Placées connu (séances);904.0;904;0.0;OK
+Conclusion LET;H1b · Placées connu (heures);1309.0;1308.8;-0.20000000000004547;OK
+Conclusion LET;H1b · Placées estimé (séances);123.0;123;0.0;OK
+Conclusion LET;H1b · Placées estimé (heures);147.0;147.2;0.19999999999998863;OK
+Conclusion LET;H1b · Restent connu (séances);3.0;3;0.0;OK
+Conclusion LET;H1b · Restent connu (heures);7.0;7;0.0;OK
+Conclusion LET;H1b · Restent incertain (séances);0.0;0;0.0;OK
+Conclusion LET;H1b · Restent incertain (heures);0.0;0;0.0;OK
+Conclusion LET;H1b · Non placées sans effectif (séances);185.0;185;0.0;OK
+Conclusion LET;H1b · Non placées sans effectif (heures);331.0;330.8;-0.19999999999998863;OK
+Conclusion LET;H1b · Non placées autre (séances);0.0;0;0.0;OK
+Conclusion LET;H1b · Non placées autre (heures);0.0;0;0.0;OK
+Conclusion LET;H1c · À reporter (séances);1215.0;1215;0.0;OK
+Conclusion LET;H1c · À reporter (heures);1794.0;1793.8;-0.20000000000004547;OK
+Conclusion LET;H1c · En conflit avant (séances);52.0;52;0.0;OK
+Conclusion LET;H1c · En conflit avant (heures);82.0;82;0.0;OK
+Conclusion LET;H1c · Relogées (séances);47.0;47;0.0;OK
+Conclusion LET;H1c · Relogées (heures);72.0;72;0.0;OK
+Conclusion LET;H1c · Placées connu (séances);903.0;903;0.0;OK
+Conclusion LET;H1c · Placées connu (heures);1305.0;1305.3;0.2999999999999545;OK
+Conclusion LET;H1c · Placées estimé (séances);123.0;123;0.0;OK
+Conclusion LET;H1c · Placées estimé (heures);147.0;147.2;0.19999999999998863;OK
+Conclusion LET;H1c · Restent connu (séances);4.0;4;0.0;OK
+Conclusion LET;H1c · Restent connu (heures);10.0;10.5;0.5;OK
+Conclusion LET;H1c · Restent incertain (séances);0.0;0;0.0;OK
+Conclusion LET;H1c · Restent incertain (heures);0.0;0;0.0;OK
+Conclusion LET;H1c · Non placées sans effectif (séances);185.0;185;0.0;OK
+Conclusion LET;H1c · Non placées sans effectif (heures);331.0;330.8;-0.19999999999998863;OK
+Conclusion LET;H1c · Non placées autre (séances);0.0;0;0.0;OK
+Conclusion LET;H1c · Non placées autre (heures);0.0;0;0.0;OK
+Conclusion LET;H2 · À reporter (séances);1215.0;1215;0.0;OK
+Conclusion LET;H2 · À reporter (heures);1794.0;1793.8;-0.20000000000004547;OK
+Conclusion LET;H2 · En conflit avant (séances);0.0;0;0.0;OK
+Conclusion LET;H2 · En conflit avant (heures);0.0;0;0.0;OK
+Conclusion LET;H2 · Relogées (séances);0.0;0;0.0;OK
+Conclusion LET;H2 · Relogées (heures);0.0;0;0.0;OK
+Conclusion LET;H2 · Placées connu (séances);907.0;907;0.0;OK
+Conclusion LET;H2 · Placées connu (heures);1316.0;1315.8;-0.20000000000004547;OK
+Conclusion LET;H2 · Placées estimé (séances);123.0;123;0.0;OK
+Conclusion LET;H2 · Placées estimé (heures);147.0;147.2;0.19999999999998863;OK
+Conclusion LET;H2 · Restent connu (séances);0.0;0;0.0;OK
+Conclusion LET;H2 · Restent connu (heures);0.0;0;0.0;OK
+Conclusion LET;H2 · Restent incertain (séances);0.0;0;0.0;OK
+Conclusion LET;H2 · Restent incertain (heures);0.0;0;0.0;OK
+Conclusion LET;H2 · Non placées sans effectif (séances);185.0;185;0.0;OK
+Conclusion LET;H2 · Non placées sans effectif (heures);331.0;330.8;-0.19999999999998863;OK
+Conclusion LET;H2 · Non placées autre (séances);0.0;0;0.0;OK
+Conclusion LET;H2 · Non placées autre (heures);0.0;0;0.0;OK
+Conclusion LET;H3b · À reporter (séances);1215.0;1215;0.0;OK
+Conclusion LET;H3b · À reporter (heures);1794.0;1793.8;-0.20000000000004547;OK
+Conclusion LET;H3b · En conflit avant (séances);0.0;0;0.0;OK
+Conclusion LET;H3b · En conflit avant (heures);0.0;0;0.0;OK
+Conclusion LET;H3b · Relogées (séances);0.0;0;0.0;OK
+Conclusion LET;H3b · Relogées (heures);0.0;0;0.0;OK
+Conclusion LET;H3b · Placées connu (séances);907.0;907;0.0;OK
+Conclusion LET;H3b · Placées connu (heures);1316.0;1315.8;-0.20000000000004547;OK
+Conclusion LET;H3b · Placées estimé (séances);123.0;123;0.0;OK
+Conclusion LET;H3b · Placées estimé (heures);147.0;147.2;0.19999999999998863;OK
+Conclusion LET;H3b · Restent connu (séances);0.0;0;0.0;OK
+Conclusion LET;H3b · Restent connu (heures);0.0;0;0.0;OK
+Conclusion LET;H3b · Restent incertain (séances);0.0;0;0.0;OK
+Conclusion LET;H3b · Restent incertain (heures);0.0;0;0.0;OK
+Conclusion LET;H3b · Non placées sans effectif (séances);185.0;185;0.0;OK
+Conclusion LET;H3b · Non placées sans effectif (heures);331.0;330.8;-0.19999999999998863;OK
+Conclusion LET;H3b · Non placées autre (séances);0.0;0;0.0;OK
+Conclusion LET;H3b · Non placées autre (heures);0.0;0;0.0;OK
+Synthèse V2;H1a · Locaux d'accueil (n);5.0;5;0.0;OK
+Synthèse V2;H1a · À reporter (n);1215.0;1215;0.0;OK
+Synthèse V2;H1a · À reporter (h);1794.0;1793.83;-0.17000000000007276;OK
+Synthèse V2;H1a · dont examens (n);77.0;77;0.0;OK
+Synthèse V2;H1a · dont examens (h);127.0;127.33;0.3299999999999983;OK
+Synthèse V2;H1a · Reportées connu (n);907.0;907;0.0;OK
+Synthèse V2;H1a · Reportées connu (h);1316.0;1315.75;-0.25;OK
+Synthèse V2;H1a · Reportées estimé (n);123.0;123;0.0;OK
+Synthèse V2;H1a · Reportées estimé (h);147.0;147.25;0.25;OK
+Synthèse V2;H1a · dont chevauchement (n);458.0;458;0.0;OK
+Synthèse V2;H1a · dont chevauchement (h);654.0;653.75;-0.25;OK
+Synthèse V2;H1a · Chevauchements (n);700.0;700;0.0;OK
+Synthèse V2;H1a · Sans effectif (n);185.0;185;0.0;OK
+Synthèse V2;H1a · Sans effectif (h);331.0;330.83;-0.17000000000001592;OK
+Synthèse V2;H1a · Sans solution (n);0.0;0;0.0;OK
+Synthèse V2;H1a · Sans solution (h);0.0;0;0.0;OK
+Synthèse V2;H1a · Non couvertes (n);0.0;0;0.0;OK
+Synthèse V2;H1a · Non couvertes (h);0.0;0;0.0;OK
+Synthèse V2;H1a · Besoin non résolu (n);308.0;308;0.0;OK
+Synthèse V2;H1a · Besoin non résolu (h);478.0;478.08;0.07999999999998408;OK
+Synthèse V2;H1b · Locaux d'accueil (n);26.0;26;0.0;OK
+Synthèse V2;H1b · À reporter (n);1215.0;1215;0.0;OK
+Synthèse V2;H1b · À reporter (h);1794.0;1793.83;-0.17000000000007276;OK
+Synthèse V2;H1b · dont examens (n);77.0;77;0.0;OK
+Synthèse V2;H1b · dont examens (h);127.0;127.33;0.3299999999999983;OK
+Synthèse V2;H1b · Reportées connu (n);907.0;907;0.0;OK
+Synthèse V2;H1b · Reportées connu (h);1316.0;1315.75;-0.25;OK
+Synthèse V2;H1b · Reportées estimé (n);123.0;123;0.0;OK
+Synthèse V2;H1b · Reportées estimé (h);147.0;147.25;0.25;OK
+Synthèse V2;H1b · dont chevauchement (n);204.0;204;0.0;OK
+Synthèse V2;H1b · dont chevauchement (h);309.0;309.33;0.3299999999999841;OK
+Synthèse V2;H1b · Chevauchements (n);275.0;275;0.0;OK
+Synthèse V2;H1b · Sans effectif (n);185.0;185;0.0;OK
+Synthèse V2;H1b · Sans effectif (h);331.0;330.83;-0.17000000000001592;OK
+Synthèse V2;H1b · Sans solution (n);0.0;0;0.0;OK
+Synthèse V2;H1b · Sans solution (h);0.0;0;0.0;OK
+Synthèse V2;H1b · Non couvertes (n);0.0;0;0.0;OK
+Synthèse V2;H1b · Non couvertes (h);0.0;0;0.0;OK
+Synthèse V2;H1b · Besoin non résolu (n);308.0;308;0.0;OK
+Synthèse V2;H1b · Besoin non résolu (h);478.0;478.08;0.07999999999998408;OK
+Synthèse V2;H1c · Locaux d'accueil (n);14.0;14;0.0;OK
+Synthèse V2;H1c · À reporter (n);1215.0;1215;0.0;OK
+Synthèse V2;H1c · À reporter (h);1794.0;1793.83;-0.17000000000007276;OK
+Synthèse V2;H1c · dont examens (n);77.0;77;0.0;OK
+Synthèse V2;H1c · dont examens (h);127.0;127.33;0.3299999999999983;OK
+Synthèse V2;H1c · Reportées connu (n);907.0;907;0.0;OK
+Synthèse V2;H1c · Reportées connu (h);1316.0;1315.75;-0.25;OK
+Synthèse V2;H1c · Reportées estimé (n);123.0;123;0.0;OK
+Synthèse V2;H1c · Reportées estimé (h);147.0;147.25;0.25;OK
+Synthèse V2;H1c · dont chevauchement (n);52.0;52;0.0;OK
+Synthèse V2;H1c · dont chevauchement (h);82.0;82;0.0;OK
+Synthèse V2;H1c · Chevauchements (n);74.0;74;0.0;OK
+Synthèse V2;H1c · Sans effectif (n);185.0;185;0.0;OK
+Synthèse V2;H1c · Sans effectif (h);331.0;330.83;-0.17000000000001592;OK
+Synthèse V2;H1c · Sans solution (n);0.0;0;0.0;OK
+Synthèse V2;H1c · Sans solution (h);0.0;0;0.0;OK
+Synthèse V2;H1c · Non couvertes (n);0.0;0;0.0;OK
+Synthèse V2;H1c · Non couvertes (h);0.0;0;0.0;OK
+Synthèse V2;H1c · Besoin non résolu (n);308.0;308;0.0;OK
+Synthèse V2;H1c · Besoin non résolu (h);478.0;478.08;0.07999999999998408;OK
+Synthèse V2;H2 · Locaux d'accueil (n);5.0;5;0.0;OK
+Synthèse V2;H2 · À reporter (n);1215.0;1215;0.0;OK
+Synthèse V2;H2 · À reporter (h);1794.0;1793.83;-0.17000000000007276;OK
+Synthèse V2;H2 · dont examens (n);77.0;77;0.0;OK
+Synthèse V2;H2 · dont examens (h);127.0;127.33;0.3299999999999983;OK
+Synthèse V2;H2 · Reportées connu (n);907.0;907;0.0;OK
+Synthèse V2;H2 · Reportées connu (h);1316.0;1315.75;-0.25;OK
+Synthèse V2;H2 · Reportées estimé (n);123.0;123;0.0;OK
+Synthèse V2;H2 · Reportées estimé (h);147.0;147.25;0.25;OK
+Synthèse V2;H2 · dont chevauchement (n);0.0;0;0.0;OK
+Synthèse V2;H2 · dont chevauchement (h);0.0;0;0.0;OK
+Synthèse V2;H2 · Chevauchements (n);0.0;0;0.0;OK
+Synthèse V2;H2 · Sans effectif (n);185.0;185;0.0;OK
+Synthèse V2;H2 · Sans effectif (h);331.0;330.83;-0.17000000000001592;OK
+Synthèse V2;H2 · Sans solution (n);0.0;0;0.0;OK
+Synthèse V2;H2 · Sans solution (h);0.0;0;0.0;OK
+Synthèse V2;H2 · Non couvertes (n);0.0;0;0.0;OK
+Synthèse V2;H2 · Non couvertes (h);0.0;0;0.0;OK
+Synthèse V2;H2 · Besoin non résolu (n);308.0;308;0.0;OK
+Synthèse V2;H2 · Besoin non résolu (h);478.0;478.08;0.07999999999998408;OK
+Synthèse V2;H3b · Locaux d'accueil (n);26.0;26;0.0;OK
+Synthèse V2;H3b · À reporter (n);1215.0;1215;0.0;OK
+Synthèse V2;H3b · À reporter (h);1794.0;1793.83;-0.17000000000007276;OK
+Synthèse V2;H3b · dont examens (n);77.0;77;0.0;OK
+Synthèse V2;H3b · dont examens (h);127.0;127.33;0.3299999999999983;OK
+Synthèse V2;H3b · Reportées connu (n);907.0;907;0.0;OK
+Synthèse V2;H3b · Reportées connu (h);1316.0;1315.75;-0.25;OK
+Synthèse V2;H3b · Reportées estimé (n);123.0;123;0.0;OK
+Synthèse V2;H3b · Reportées estimé (h);147.0;147.25;0.25;OK
+Synthèse V2;H3b · dont chevauchement (n);0.0;0;0.0;OK
+Synthèse V2;H3b · dont chevauchement (h);0.0;0;0.0;OK
+Synthèse V2;H3b · Chevauchements (n);0.0;0;0.0;OK
+Synthèse V2;H3b · Sans effectif (n);185.0;185;0.0;OK
+Synthèse V2;H3b · Sans effectif (h);331.0;330.83;-0.17000000000001592;OK
+Synthèse V2;H3b · Sans solution (n);0.0;0;0.0;OK
+Synthèse V2;H3b · Sans solution (h);0.0;0;0.0;OK
+Synthèse V2;H3b · Non couvertes (n);0.0;0;0.0;OK
+Synthèse V2;H3b · Non couvertes (h);0.0;0;0.0;OK
+Synthèse V2;H3b · Besoin non résolu (n);308.0;308;0.0;OK
+Synthèse V2;H3b · Besoin non résolu (h);478.0;478.08;0.07999999999998408;OK
+Synthèse V2;Référence · séances réaffectées;3577.0;3577;0.0;OK
+Synthèse V2;Référence · heures réaffectées;5350.0;5350.41;0.4099999999998545;OK
+Synthèse V2;Référence · heures d'amphi libérées (net);871.0;871.2499999999998;0.24999999999977263;OK
+Synthèse V2;Référence · occupation avant (%);40.7;40.70411764705882;0.004117647058819784;OK
+Synthèse V2;Référence · occupation après (%);37.0;36.991176470588236;-0.008823529411763786;OK
+Synthèse V2;Référence · remplissage avant (%);61.1;61.1224699024551;0.022469902455100055;OK
+Synthèse V2;Référence · remplissage après (%);73.3;73.25229044164534;-0.04770955835465429;OK
+Synthèse V2;Référence · effectif > capacité;540.0;540;0.0;OK
+Synthèse V2;H1a · séances réaffectées;3867.0;3867;0.0;OK
+Synthèse V2;H1a · heures réaffectées;5800.0;5799.92;-0.07999999999992724;OK
+Synthèse V2;H1a · heures d'amphi libérées (net);757.0;756.75;-0.25;OK
+Synthèse V2;H1a · occupation avant (%);39.3;39.292941176470585;-0.00705882352941245;OK
+Synthèse V2;H1a · occupation après (%);34.8;34.83411764705882;0.03411764705882092;OK
+Synthèse V2;H1a · remplissage avant (%);61.1;61.04376678667253;-0.05623321332747366;OK
+Synthèse V2;H1a · remplissage après (%);80.0;79.96270034667495;-0.03729965332505003;OK
+Synthèse V2;H1a · effectif > capacité;539.0;539;0.0;OK
+Synthèse V2;H1b · séances réaffectées;3748.0;3748;0.0;OK
+Synthèse V2;H1b · heures réaffectées;5658.0;5658.5;0.5;OK
+Synthèse V2;H1b · heures d'amphi libérées (net);444.0;444.5;0.5;OK
+Synthèse V2;H1b · occupation avant (%);35.9;35.86529411764705;-0.03470588235294514;OK
+Synthèse V2;H1b · occupation après (%);34.1;34.102941176470594;0.0029411764705926657;OK
+Synthèse V2;H1b · remplissage avant (%);63.4;63.39385439228431;-0.006145607715687618;OK
+Synthèse V2;H1b · remplissage après (%);80.1;80.12928861882597;0.02928861882597289;OK
+Synthèse V2;H1b · effectif > capacité;539.0;539;0.0;OK
+Synthèse V2;H1c · séances réaffectées;4005.0;4005;0.0;OK
+Synthèse V2;H1c · heures réaffectées;5992.0;5992.41;0.4099999999998545;OK
+Synthèse V2;H1c · heures d'amphi libérées (net);927.0;927.25;0.25;OK
+Synthèse V2;H1c · occupation avant (%);39.3;39.294117647058826;-0.005882352941171121;OK
+Synthèse V2;H1c · occupation après (%);35.2;35.24941176470589;0.04941176470588715;OK
+Synthèse V2;H1c · remplissage avant (%);63.1;63.09905016024917;-0.0009498397508309608;OK
+Synthèse V2;H1c · remplissage après (%);80.1;80.09211456084839;-0.007885439151607443;OK
+Synthèse V2;H1c · effectif > capacité;539.0;539;0.0;OK
+Synthèse V2;H2 · séances réaffectées;4316.0;4316;0.0;OK
+Synthèse V2;H2 · heures réaffectées;6430.0;6430.27;0.27000000000043656;OK
+Synthèse V2;H2 · heures d'amphi libérées (net);1083.0;1082.67;-0.32999999999992724;OK
+Synthèse V2;H2 · occupation avant (%);39.4;39.37411764705882;-0.025882352941181352;OK
+Synthèse V2;H2 · occupation après (%);34.8;34.759411764705895;-0.04058823529410205;OK
+Synthèse V2;H2 · remplissage avant (%);58.5;58.52281082501408;0.02281082501408349;OK
+Synthèse V2;H2 · remplissage après (%);80.8;80.8442451408854;0.04424514088540832;OK
+Synthèse V2;H2 · effectif > capacité;539.0;539;0.0;OK
+Synthèse V2;H3b · séances réaffectées;3896.0;3896;0.0;OK
+Synthèse V2;H3b · heures réaffectées;5894.0;5893.59;-0.4099999999998545;OK
+Synthèse V2;H3b · heures d'amphi libérées (net);452.0;451.5;-0.5;OK
+Synthèse V2;H3b · occupation avant (%);36.0;35.95941176470588;-0.040588235294123365;OK
+Synthèse V2;H3b · occupation après (%);34.0;34.034705882352945;0.03470588235294514;OK
+Synthèse V2;H3b · remplissage avant (%);62.2;62.21417024184808;0.01417024184807758;OK
+Synthèse V2;H3b · remplissage après (%);80.8;80.80250397419402;0.0025039741940275917;OK
+Synthèse V2;H3b · effectif > capacité;539.0;539;0.0;OK
+Usages sans effectif;Séances sans effectif;185;185;0.0;OK
+Usages sans effectif;Heures à reloger (8h-18h);331 h;330.8299999999999;-0.17000000000007276;OK
+Usages sans effectif;Heures, durée complète;386 h;385.6399999999999;-0.36000000000012733;OK
+Usages sans effectif;Part des séances à reporter (%);15,2 %;15.22633744855967;0.026337448559671017;OK
+Usages sans effectif;UTLA · séances;111.0;111;0.0;OK
+Usages sans effectif;UTLA · heures 8h-18h;140.3;140.33;0.030000000000001137;OK
+Usages sans effectif;Enseignement SSH · séances;5.0;5;0.0;OK
+Usages sans effectif;Enseignement SSH · heures 8h-18h;10.0;10;0.0;OK
+Usages sans effectif;Examen SSH · séances;12.0;12;0.0;OK
+Usages sans effectif;Examen SSH · heures 8h-18h;12.9;12.92;0.019999999999999574;OK
+Usages sans effectif;Autre usage interne · séances;8.0;8;0.0;OK
+Usages sans effectif;Autre usage interne · heures 8h-18h;20.1;20.08;-0.020000000000003126;OK
+Usages sans effectif;Réservation à identifier · séances;49.0;49;0.0;OK
+Usages sans effectif;Réservation à identifier · heures 8h-18h;147.5;147.5;0.0;OK
+À vérifier;Priorité haute · séances;119.0;119;0.0;OK
+À vérifier;Priorité haute · heures;143.5;143.5;0.0;OK
+À vérifier;Priorité moyenne · séances;4.0;4;0.0;OK
+À vérifier;Priorité moyenne · heures;3.8;3.75;-0.04999999999999982;OK
+À vérifier;Sans salle · Effectif inconnu · séries;638.0;638;0.0;OK
+À vérifier;Sans salle · Effectif inconnu · séances;2294.0;2294;0.0;OK
+À vérifier;Sans salle · Effectif inconnu · heures;3494.0;3493.75;-0.25;OK
+À vérifier;Sans salle · Moins de 50 · séries;2388.0;2388;0.0;OK
+À vérifier;Sans salle · Moins de 50 · séances;6766.0;6766;0.0;OK
+À vérifier;Sans salle · Moins de 50 · heures;12182.0;12181.499999999996;-0.500000000003638;OK
+À vérifier;Sans salle · 50 à 99 · séries;281.0;281;0.0;OK
+À vérifier;Sans salle · 50 à 99 · séances;1146.0;1146;0.0;OK
+À vérifier;Sans salle · 50 à 99 · heures;1534.0;1534.5;0.5;OK
+À vérifier;Sans salle · 100 à 149 · séries;144.0;144;0.0;OK
+À vérifier;Sans salle · 100 à 149 · séances;492.0;492;0.0;OK
+À vérifier;Sans salle · 100 à 149 · heures;701.0;701.2500000000001;0.2500000000001137;OK
+À vérifier;Sans salle · 150 et plus · séries;141.0;141;0.0;OK
+À vérifier;Sans salle · 150 et plus · séances;413.0;413;0.0;OK
+À vérifier;Sans salle · 150 et plus · heures;596.0;596.0833333333334;0.08333333333337123;OK
+Référence;Salles suivies;596;596;0.0;OK
+Référence;Taux moyen (%);20.229529390785594;20.229580536912753;5.1146127159285015e-05;OK
+Référence;Sous-utilisées (<10 %);244;0;-244.0;ÉCART
+Référence;Fortement sollicitées (≥30 %);201;0;-201.0;ÉCART
+Référence;Heures-salles occupées;166383.83333333334;166383.75000000006;-0.08333333328482695;OK
+Référence;Séances reconstituées;90088;90088;0.0;OK
+Référence;Occupation hebdomadaire : écart maximal sur 33 semaines (points de %);0.0;24.683165548098444;24.683165548098444;ÉCART
+H1a;Salles suivies;596;596;0.0;OK
+H1a;Taux moyen (%);20.189305515027723;20.189328859060403;2.334403268022811e-05;OK
+H1a;Sous-utilisées (<10 %);247;0;-247.0;ÉCART
+H1a;Fortement sollicitées (≥30 %);198;0;-198.0;ÉCART
+H1a;Heures-salles occupées;166053.0;166052.93000000002;-0.06999999997788109;OK
+H1a;Séances reconstituées;89903;89903;0.0;OK
+H1a;Chevauchements détectés;700;700;0.0;OK
+H1a;Occupation hebdomadaire : écart maximal sur 33 semaines (points de %);0.0;24.619407158836697;24.619407158836697;ÉCART
+H1b;Salles suivies;596;596;0.0;OK
+H1b;Taux moyen (%);20.189305515027723;20.189345637583898;4.012255617524829e-05;OK
+H1b;Sous-utilisées (<10 %);247;0;-247.0;ÉCART
+H1b;Fortement sollicitées (≥30 %);199;0;-199.0;ÉCART
+H1b;Heures-salles occupées;166053.0;166052.92;-0.07999999998719431;OK
+H1b;Séances reconstituées;89903;89903;0.0;OK
+H1b;Chevauchements détectés;275;275;0.0;OK
+H1b;Occupation hebdomadaire : écart maximal sur 33 semaines (points de %);0.0;24.619407158836697;24.619407158836697;ÉCART
+H1c;Salles suivies;596;596;0.0;OK
+H1c;Taux moyen (%);20.189305515027723;20.18936241610739;5.690107966671576e-05;OK
+H1c;Sous-utilisées (<10 %);247;0;-247.0;ÉCART
+H1c;Fortement sollicitées (≥30 %);199;0;-199.0;ÉCART
+H1c;Heures-salles occupées;166053.0;166052.93000000005;-0.06999999994877726;OK
+H1c;Séances reconstituées;89903;89903;0.0;OK
+H1c;Chevauchements détectés;74;74;0.0;OK
+H1c;Occupation hebdomadaire : écart maximal sur 33 semaines (points de %);0.0;24.619407158836697;24.619407158836697;ÉCART
+H2 (lissage);Salles suivies;596;596;0.0;OK
+H2 (lissage);Taux moyen (%);20.19158520571929;20.191644295302016;5.90895827272675e-05;OK
+H2 (lissage);Sous-utilisées (<10 %);247;0;-247.0;ÉCART
+H2 (lissage);Fortement sollicitées (≥30 %);198;0;-198.0;ÉCART
+H2 (lissage);Heures-salles occupées;166071.75;166071.66000000003;-0.08999999996740371;OK
+H2 (lissage);Séances reconstituées;89903;89903;0.0;OK
+H2 (lissage);Chevauchements détectés;0;0;0.0;OK
+H2 (lissage);Occupation hebdomadaire : écart maximal sur 33 semaines (points de %);0.0;24.62108501118569;24.62108501118569;ÉCART
+H3b (lissage);Salles suivies;596;596;0.0;OK
+H3b (lissage);Taux moyen (%);20.19158520571929;20.19161073825504;2.553253575143799e-05;OK
+H3b (lissage);Sous-utilisées (<10 %);247;0;-247.0;ÉCART
+H3b (lissage);Fortement sollicitées (≥30 %);199;0;-199.0;ÉCART
+H3b (lissage);Heures-salles occupées;166071.75;166071.68000000002;-0.06999999997788109;OK
+H3b (lissage);Séances reconstituées;89903;89903;0.0;OK
+H3b (lissage);Chevauchements détectés;0;0;0.0;OK
+H3b (lissage);Occupation hebdomadaire : écart maximal sur 33 semaines (points de %);0.0;24.62108501118569;24.62108501118569;ÉCART
+Amphis;Taux de 28 amphis × 7 cas : écart maximal (points de %);0.0;7.105427357601002e-15;7.105427357601002e-15;OK
+Réaffectation globale;Référence · Cours/TD SSH Pau analysés;19 519 séances;19519;0.0;OK
+Réaffectation globale;Référence · Séances réaffectées;3 577 (5 350 h);3577;0.0;OK
+Réaffectation globale;Référence · Heures d'amphi libérées (net);871 h;871.2499999999998;0.24999999999977263;OK

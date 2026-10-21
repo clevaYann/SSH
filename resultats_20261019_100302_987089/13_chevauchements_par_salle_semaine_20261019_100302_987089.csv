@@ -1,0 +1,155 @@
+﻿scenario;code;room;week;period;conflicts
+H1a;36276;Amphi A_A300 (DEG-00);2025-S38;hors examens;1
+H1a;36276;Amphi A_A300 (DEG-00);2025-S41;hors examens;1
+H1a;36279;Amphi A_A150 (DEG-00);2025-S37;hors examens;6
+H1a;36279;Amphi A_A150 (DEG-00);2025-S38;hors examens;7
+H1a;36279;Amphi A_A150 (DEG-00);2025-S39;hors examens;8
+H1a;36279;Amphi A_A150 (DEG-00);2025-S40;hors examens;4
+H1a;36279;Amphi A_A150 (DEG-00);2025-S41;hors examens;4
+H1a;36279;Amphi A_A150 (DEG-00);2025-S42;hors examens;6
+H1a;36279;Amphi A_A150 (DEG-00);2025-S43;hors examens;5
+H1a;36279;Amphi A_A150 (DEG-00);2025-S45;hors examens;8
+H1a;36279;Amphi A_A150 (DEG-00);2025-S46;hors examens;4
+H1a;36279;Amphi A_A150 (DEG-00);2025-S47;hors examens;7
+H1a;36279;Amphi A_A150 (DEG-00);2025-S48;hors examens;3
+H1a;36279;Amphi A_A150 (DEG-00);2025-S49;hors examens;6
+H1a;36279;Amphi A_A150 (DEG-00);2025-S50;hors examens;5
+H1a;36279;Amphi A_A150 (DEG-00);2026-S04;hors examens;4
+H1a;36279;Amphi A_A150 (DEG-00);2026-S05;hors examens;1
+H1a;36279;Amphi A_A150 (DEG-00);2026-S06;hors examens;4
+H1a;36279;Amphi A_A150 (DEG-00);2026-S07;hors examens;7
+H1a;36279;Amphi A_A150 (DEG-00);2026-S09;hors examens;4
+H1a;36279;Amphi A_A150 (DEG-00);2026-S10;hors examens;1
+H1a;36279;Amphi A_A150 (DEG-00);2026-S11;hors examens;1
+H1a;36279;Amphi A_A150 (DEG-00);2026-S12;hors examens;4
+H1a;36279;Amphi A_A150 (DEG-00);2026-S13;hors examens;1
+H1a;36279;Amphi A_A150 (DEG-00);2026-S14;hors examens;3
+H1a;36290;Amphi C_A120 (DEG-00);2025-S37;hors examens;50
+H1a;36290;Amphi C_A120 (DEG-00);2025-S38;hors examens;25
+H1a;36290;Amphi C_A120 (DEG-00);2025-S39;hors examens;36
+H1a;36290;Amphi C_A120 (DEG-00);2025-S40;hors examens;25
+H1a;36290;Amphi C_A120 (DEG-00);2025-S41;hors examens;29
+H1a;36290;Amphi C_A120 (DEG-00);2025-S42;hors examens;31
+H1a;36290;Amphi C_A120 (DEG-00);2025-S43;hors examens;20
+H1a;36290;Amphi C_A120 (DEG-00);2025-S45;hors examens;31
+H1a;36290;Amphi C_A120 (DEG-00);2025-S46;hors examens;6
+H1a;36290;Amphi C_A120 (DEG-00);2025-S47;hors examens;24
+H1a;36290;Amphi C_A120 (DEG-00);2025-S48;hors examens;11
+H1a;36290;Amphi C_A120 (DEG-00);2025-S49;hors examens;14
+H1a;36290;Amphi C_A120 (DEG-00);2025-S50;hors examens;25
+H1a;36290;Amphi C_A120 (DEG-00);2025-S51;hors examens;13
+H1a;36290;Amphi C_A120 (DEG-00);2026-S04;hors examens;37
+H1a;36290;Amphi C_A120 (DEG-00);2026-S05;hors examens;48
+H1a;36290;Amphi C_A120 (DEG-00);2026-S06;hors examens;19
+H1a;36290;Amphi C_A120 (DEG-00);2026-S07;hors examens;18
+H1a;36290;Amphi C_A120 (DEG-00);2026-S09;hors examens;21
+H1a;36290;Amphi C_A120 (DEG-00);2026-S10;hors examens;12
+H1a;36290;Amphi C_A120 (DEG-00);2026-S11;hors examens;14
+H1a;36290;Amphi C_A120 (DEG-00);2026-S12;hors examens;16
+H1a;36290;Amphi C_A120 (DEG-00);2026-S13;hors examens;17
+H1a;36290;Amphi C_A120 (DEG-00);2026-S14;hors examens;36
+H1a;36290;Amphi C_A120 (DEG-00);2026-S17;hors examens;17
+H1b;27308;Salle de cours 107 (LET-00);2025-S40;hors examens;2
+H1b;27308;Salle de cours 107 (LET-00);2025-S51;hors examens;1
+H1b;27323;Salle de cours 14 (LET-00);2025-S41;hors examens;1
+H1b;27323;Salle de cours 14 (LET-00);2026-S04;hors examens;3
+H1b;27323;Salle de cours 14 (LET-00);2026-S05;hors examens;5
+H1b;27323;Salle de cours 14 (LET-00);2026-S06;hors examens;3
+H1b;27323;Salle de cours 14 (LET-00);2026-S07;hors examens;2
+H1b;27323;Salle de cours 14 (LET-00);2026-S10;hors examens;1
+H1b;27323;Salle de cours 14 (LET-00);2026-S11;hors examens;1
+H1b;27323;Salle de cours 14 (LET-00);2026-S12;hors examens;1
+H1b;27323;Salle de cours 14 (LET-00);2026-S13;hors examens;1
+H1b;36271;Salle de cours B_B2 (DEG-00);2025-S39;hors examens;1
+H1b;36271;Salle de cours B_B2 (DEG-00);2025-S40;hors examens;1
+H1b;36271;Salle de cours B_B2 (DEG-00);2025-S41;hors examens;1
+H1b;36271;Salle de cours B_B2 (DEG-00);2025-S42;hors examens;2
+H1b;36271;Salle de cours B_B2 (DEG-00);2025-S47;hors examens;1
+H1b;36271;Salle de cours B_B2 (DEG-00);2025-S48;hors examens;2
+H1b;36271;Salle de cours B_B2 (DEG-00);2026-S09;hors examens;2
+H1b;36276;Amphi A_A300 (DEG-00);2025-S38;hors examens;1
+H1b;36276;Amphi A_A300 (DEG-00);2025-S41;hors examens;1
+H1b;36279;Amphi A_A150 (DEG-00);2025-S37;hors examens;3
+H1b;36279;Amphi A_A150 (DEG-00);2025-S38;hors examens;7
+H1b;36279;Amphi A_A150 (DEG-00);2025-S39;hors examens;7
+H1b;36279;Amphi A_A150 (DEG-00);2025-S40;hors examens;3
+H1b;36279;Amphi A_A150 (DEG-00);2025-S41;hors examens;4
+H1b;36279;Amphi A_A150 (DEG-00);2025-S42;hors examens;4
+H1b;36279;Amphi A_A150 (DEG-00);2025-S43;hors examens;4
+H1b;36279;Amphi A_A150 (DEG-00);2025-S45;hors examens;6
+H1b;36279;Amphi A_A150 (DEG-00);2025-S46;hors examens;1
+H1b;36279;Amphi A_A150 (DEG-00);2025-S47;hors examens;7
+H1b;36279;Amphi A_A150 (DEG-00);2025-S48;hors examens;3
+H1b;36279;Amphi A_A150 (DEG-00);2025-S49;hors examens;3
+H1b;36279;Amphi A_A150 (DEG-00);2025-S50;hors examens;3
+H1b;36279;Amphi A_A150 (DEG-00);2026-S04;hors examens;4
+H1b;36279;Amphi A_A150 (DEG-00);2026-S05;hors examens;1
+H1b;36279;Amphi A_A150 (DEG-00);2026-S06;hors examens;4
+H1b;36279;Amphi A_A150 (DEG-00);2026-S07;hors examens;5
+H1b;36279;Amphi A_A150 (DEG-00);2026-S09;hors examens;4
+H1b;36279;Amphi A_A150 (DEG-00);2026-S11;hors examens;1
+H1b;36279;Amphi A_A150 (DEG-00);2026-S12;hors examens;4
+H1b;36279;Amphi A_A150 (DEG-00);2026-S13;hors examens;1
+H1b;36279;Amphi A_A150 (DEG-00);2026-S14;hors examens;3
+H1b;36287;Salle de cours C_C03 (DEG-00);2025-S40;hors examens;1
+H1b;36287;Salle de cours C_C03 (DEG-00);2025-S41;hors examens;1
+H1b;36287;Salle de cours C_C03 (DEG-00);2025-S46;hors examens;2
+H1b;36287;Salle de cours C_C03 (DEG-00);2025-S50;hors examens;2
+H1b;36287;Salle de cours C_C03 (DEG-00);2026-S09;hors examens;2
+H1b;36290;Amphi C_A120 (DEG-00);2025-S37;hors examens;13
+H1b;36290;Amphi C_A120 (DEG-00);2025-S38;hors examens;4
+H1b;36290;Amphi C_A120 (DEG-00);2025-S39;hors examens;13
+H1b;36290;Amphi C_A120 (DEG-00);2025-S40;hors examens;8
+H1b;36290;Amphi C_A120 (DEG-00);2025-S41;hors examens;8
+H1b;36290;Amphi C_A120 (DEG-00);2025-S42;hors examens;11
+H1b;36290;Amphi C_A120 (DEG-00);2025-S43;hors examens;7
+H1b;36290;Amphi C_A120 (DEG-00);2025-S45;hors examens;7
+H1b;36290;Amphi C_A120 (DEG-00);2025-S47;hors examens;7
+H1b;36290;Amphi C_A120 (DEG-00);2025-S48;hors examens;1
+H1b;36290;Amphi C_A120 (DEG-00);2025-S49;hors examens;2
+H1b;36290;Amphi C_A120 (DEG-00);2025-S50;hors examens;6
+H1b;36290;Amphi C_A120 (DEG-00);2025-S51;hors examens;2
+H1b;36290;Amphi C_A120 (DEG-00);2026-S04;hors examens;11
+H1b;36290;Amphi C_A120 (DEG-00);2026-S05;hors examens;15
+H1b;36290;Amphi C_A120 (DEG-00);2026-S06;hors examens;5
+H1b;36290;Amphi C_A120 (DEG-00);2026-S07;hors examens;2
+H1b;36290;Amphi C_A120 (DEG-00);2026-S09;hors examens;6
+H1b;36290;Amphi C_A120 (DEG-00);2026-S10;hors examens;2
+H1b;36290;Amphi C_A120 (DEG-00);2026-S11;hors examens;4
+H1b;36290;Amphi C_A120 (DEG-00);2026-S12;hors examens;2
+H1b;36290;Amphi C_A120 (DEG-00);2026-S13;hors examens;5
+H1b;36290;Amphi C_A120 (DEG-00);2026-S14;hors examens;7
+H1b;36290;Amphi C_A120 (DEG-00);2026-S17;hors examens;3
+H1b;36561;Salle de cours C_C19 (DEG-01);2026-S07;hors examens;1
+H1c;13841;Amphi F (PAL-00);2025-S37;hors examens;4
+H1c;13841;Amphi F (PAL-00);2025-S38;hors examens;1
+H1c;13841;Amphi F (PAL-00);2025-S39;hors examens;2
+H1c;13841;Amphi F (PAL-00);2025-S41;hors examens;2
+H1c;13841;Amphi F (PAL-00);2025-S45;hors examens;4
+H1c;13841;Amphi F (PAL-00);2025-S46;hors examens;3
+H1c;13841;Amphi F (PAL-00);2025-S51;hors examens;5
+H1c;13841;Amphi F (PAL-00);2026-S05;hors examens;3
+H1c;13841;Amphi F (PAL-00);2026-S06;hors examens;2
+H1c;13841;Amphi F (PAL-00);2026-S07;hors examens;2
+H1c;13841;Amphi F (PAL-00);2026-S11;hors examens;5
+H1c;13841;Amphi F (PAL-00);2026-S14;hors examens;1
+H1c;17228;Amphi G (DUB-00);2025-S37;hors examens;1
+H1c;17228;Amphi G (DUB-00);2025-S38;hors examens;1
+H1c;17228;Amphi G (DUB-00);2025-S42;hors examens;1
+H1c;17228;Amphi G (DUB-00);2026-S07;hors examens;2
+H1c;17228;Amphi G (DUB-00);2026-S11;hors examens;1
+H1c;36276;Amphi A_A300 (DEG-00);2025-S38;hors examens;1
+H1c;36276;Amphi A_A300 (DEG-00);2025-S41;hors examens;1
+H1c;36290;Amphi C_A120 (DEG-00);2025-S37;hors examens;8
+H1c;36290;Amphi C_A120 (DEG-00);2025-S38;hors examens;2
+H1c;36290;Amphi C_A120 (DEG-00);2025-S39;hors examens;1
+H1c;36290;Amphi C_A120 (DEG-00);2025-S40;hors examens;2
+H1c;36290;Amphi C_A120 (DEG-00);2025-S41;hors examens;3
+H1c;36290;Amphi C_A120 (DEG-00);2025-S42;hors examens;2
+H1c;36290;Amphi C_A120 (DEG-00);2025-S43;hors examens;3
+H1c;36290;Amphi C_A120 (DEG-00);2025-S45;hors examens;2
+H1c;36290;Amphi C_A120 (DEG-00);2025-S51;hors examens;1
+H1c;36290;Amphi C_A120 (DEG-00);2026-S05;hors examens;4
+H1c;36290;Amphi C_A120 (DEG-00);2026-S06;hors examens;1
+H1c;36290;Amphi C_A120 (DEG-00);2026-S10;hors examens;1
+H1c;36290;Amphi C_A120 (DEG-00);2026-S12;hors examens;2
